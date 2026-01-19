@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💸도박해요💸</title>
+    <style>
+        :root {
+            --primary: #4f46e5; --primary-hover: #4338ca; --success: #10b981; --danger: #ef4444;
+            --warning: #f59e0b; --info: #3b82f6; --dark: #1f2937; --light: #f3f4f6; --white: #ffffff;
+            --purple: #8b5cf6; --gold: #d97706;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background-color: #e5e7eb; color: var(--dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; user-select: none; }
+        .container { background: var(--white); width: 100%; max-width: 400px; padding: 25px; border-radius: 24px; box-shadow: var(--shadow); position: relative; overflow: hidden; min-height: 300px; display:flex; flex-direction:column; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .screen { display: none; flex-grow: 1; flex-direction: column; } .active { display: flex; }
+        h2 { margin: 0 0 5px 0; color: var(--dark); font-weight: 800; }
+        h3 { margin: 0; color: var(--primary); font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+        p { color: #6b7280; margin: 0; line-height: 1.4; font-size: 0.9rem; }
+
+        /* UI Components */
+        .input-group { display: flex; gap: 8px; width: 100%; align-items: center; }
+        .input-group input { margin-bottom: 0; flex: 2; }
+        .input-group button { flex: 1; margin-bottom: 0; }
+        input, select, textarea { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 1rem; box-sizing: border-box; transition: 0.2s; font-family: inherit; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+        button { width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: 0.2s; background-color: var(--primary); color: white; box-shadow: 0 3px 5px -1px rgba(79, 70, 229, 0.2); }
+        button:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        button:disabled { background-color: #d1d5db; cursor: not-allowed; transform: none; box-shadow: none; color: #9ca3af; }
+        
+        .btn-danger { background-color: var(--danger); box-shadow: 0 3px 5px -1px rgba(239, 68, 68, 0.2); } .btn-danger:hover { background-color: #dc2626; }
+        .btn-success { background-color: var(--success); box-shadow: 0 3px 5px -1px rgba(16, 185, 129, 0.2); } .btn-success:hover { background-color: #059669; }
+        .btn-outline { background-color: white; color: var(--dark); border: 2px solid #e5e7eb; box-shadow: none; } .btn-outline:hover { background-color: #f9fafb; border-color: #d1d5db; }
+        .btn-warning { background-color: var(--warning); box-shadow: 0 3px 5px -1px rgba(245, 158, 11, 0.2); color: white; } .btn-warning:hover { background-color: #d97706; }
+        .btn-purple { background-color: var(--purple); box-shadow: 0 3px 5px -1px rgba(139, 92, 246, 0.2); color: white; } .btn-purple:hover { background-color: #7c3aed; }
+        .btn-sm { padding: 6px 12px; font-size: 0.8rem; width: auto; }
+
+        /* Floating Buttons */
+        .gear-btn, .inv-btn { position: absolute; right: 20px; width: 40px; height: 40px; background: white; color: #4b5563; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center; font-size: 1.2rem; z-index: 10; padding: 0; cursor: pointer; border: 1px solid #e5e7eb; }
+        .gear-btn { top: 20px; } .gear-btn:hover { color: var(--primary); }
+        .inv-btn { top: 70px; } .inv-btn:hover { color: var(--primary); transform: scale(1.1); }
+
+        /* Item Toggle Switch */
+        .item-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #555; background: #fff; padding: 4px 10px; border-radius: 15px; border: 1px solid #e5e7eb; cursor: pointer; white-space: nowrap; transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .item-toggle:hover { background: #f9fafb; border-color: #d1d5db; }
+        .item-toggle input { display: none; }
+        .item-toggle-indicator { width: 14px; height: 14px; border-radius: 4px; border: 2px solid #d1d5db; display: inline-block; position: relative; transition: 0.2s; background: white; }
+        .item-toggle input:checked + .item-toggle-indicator { background: var(--primary); border-color: var(--primary); }
+        .item-toggle input:disabled + .item-toggle-indicator { background: #e5e7eb; border-color: #d1d5db; opacity: 0.5; }
+        .item-toggle.disabled { opacity: 0.6; cursor: not-allowed; background: #f3f4f6; }
+
+        /* Stats Box */
+        .stat-box { background: linear-gradient(135deg, var(--dark), #374151); color: white; padding: 15px; border-radius: 16px; margin-bottom: 15px; box-shadow: 0 8px 12px -3px rgba(0,0,0,0.1); margin-top: 10px; position: relative; overflow: hidden; flex-shrink: 0; }
+        .vip-badge { position: absolute; top: 10px; right: 10px; font-size: 0.7rem; font-weight: bold; padding: 2px 8px; border-radius: 10px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); }
+        .vip-gold { background: linear-gradient(45deg, #f59e0b, #fbbf24); color: #78350f; border:none; }
+        .vip-plat { background: linear-gradient(45deg, #a855f7, #ec4899); color: white; border:none; }
+        
+        .user-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; opacity: 0.9; }
+        .money-row { font-size: 1.5rem; font-weight: 800; margin-top: 3px; color: var(--success); text-shadow: 0 2px 4px rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: flex-end; }
+        .debt-text { font-size: 0.9rem; color: #fca5a5; font-weight: bold; animation: blink 2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        
+        .xp-container { margin-top: 10px; }
+        .xp-info { display: flex; justify-content: space-between; font-size: 0.7rem; color: #d1d5db; margin-bottom: 3px; }
+        .xp-bar-bg { background: rgba(255,255,255,0.2); height: 6px; border-radius: 3px; overflow: hidden; }
+        .xp-bar-fill { background: var(--info); height: 100%; width: 0%; transition: width 0.5s ease; box-shadow: 0 0 10px var(--info); }
+        .status-msg { font-size: 0.8rem; color: var(--warning); margin-top: 5px; font-weight: bold; min-height: 16px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Menu */
+        .grid-menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; flex-shrink: 0; position: relative; z-index: 50; }
+        .menu-btn { background: white; color: var(--dark); border: 1px solid #e5e7eb; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 4px; font-size: 0.8rem; gap: 4px; box-shadow: none; height: 60px; font-weight: bold; transition: 0.2s; }
+        .menu-btn:hover, .menu-btn.active-tab { background: #f9fafb; border-color: var(--primary); color: var(--primary); }
+        .menu-btn span { font-size: 1.4rem; }
+        .popover-menu { position: absolute; top: 75px; left: 0; width: 100%; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15); padding: 10px; display: none; grid-template-columns: repeat(3, 1fr); gap: 10px; z-index: 100; animation: popDown 0.2s; box-sizing: border-box; }
+        @keyframes popDown { from { opacity: 0; transform: translateY(-10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .submenu-btn { background: white; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px 5px; font-size: 0.8rem; color: #374151; font-weight: 600; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.1s; }
+        .submenu-btn:hover { background: #eff6ff; border-color: var(--primary); color: var(--primary); transform: translateY(-1px); }
+
+        /* Game Area */
+        .game-area { background: #f9fafb; border-radius: 16px; padding: 15px; border: 1px solid #f3f4f6; flex-grow: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; height: 320px; }
+        .full-height-layout { display: flex; flex-direction: column; height: 100%; justify-content: space-between; flex-grow: 1; overflow: hidden; }
+        .scroll-view { flex-grow: 1; overflow-y: auto; padding-right: 5px; margin-bottom: 5px; }
+        .scroll-view::-webkit-scrollbar { width: 4px; }
+        .scroll-view::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 4px; }
+        
+        .start-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
+        .start-icon { font-size: 4rem; margin-bottom: 10px; animation: popUp 0.5s ease; }
+
+        /* Game Elements */
+        .game-board { flex-grow: 1; background: white; border: 1px solid #e5e7eb; border-radius: 12px; margin: 10px 0; padding: 10px; display: flex; flex-direction: column; justify-content: center; overflow-y: auto; }
+        .stock-item { background: white; padding: 10px; border-radius: 8px; margin-bottom: 6px; border: 1px solid #e5e7eb; display: grid; grid-template-columns: 1.5fr 1fr 1.5fr; align-items: center; gap: 8px; }
+        .stock-info b { display: block; font-size: 0.85rem; } .stock-info span { font-size: 0.75rem; color: #6b7280; }
+        .stock-cnt { text-align: center; font-size: 0.8rem; font-weight: bold; color: var(--primary); }
+        .stock-actions { display: flex; gap: 4px; justify-content: flex-end; } .stock-actions button { width: auto; padding: 5px 8px; font-size: 0.7rem; margin: 0; box-shadow:none; }
+        
+        .bank-info { text-align: center; margin-bottom: 20px; padding: 15px; background: white; border-radius: 12px; border: 1px solid #e5e7eb; }
+        .bank-debt { color: var(--danger); font-size: 1.5rem; font-weight: 800; margin: 10px 0; }
+        
+        .compact-board { display: flex; height: 100%; align-items: center; }
+        .compact-col { flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .compact-vs { width: 1px; height: 80%; background: #e5e7eb; margin: 0 5px; }
+        .compact-label { font-size: 0.8rem; color: #6b7280; margin-bottom: 8px; font-weight: bold; }
+
+        .dice-num { width: 32px; height: 32px; line-height: 32px; background: var(--dark); color: white; border-radius: 6px; font-weight: bold; display:inline-block; margin:2px; font-size: 0.9rem; }
+        .dice-hidden { background: #d1d5db; color: #9ca3af; }
+        .card { display: inline-flex; width: 36px; height: 50px; background: white; color: var(--dark); border-radius: 4px; justify-content: center; align-items: center; font-weight: bold; margin: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); font-size: 0.9rem; }
+        .card.red { color: #dc2626; } .card-hidden { background: #374151; color: transparent; background-image: repeating-linear-gradient(45deg, #4b5563 0, #4b5563 5px, #374151 5px, #374151 10px); }
+
+        .xp-gain { animation: popUp 0.3s ease; color: var(--info); font-weight: bold; }
+        @keyframes popUp { 0%{transform:scale(1);} 50%{transform:scale(1.2);} 100%{transform:scale(1);} }
+
+        /* ROULETTE STYLES */
+        .rt-choice-box { display: flex; gap: 10px; justify-content: center; margin-top: 5px; width: 100%; }
+        .rt-radio-label { flex: 1; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; cursor: pointer; transition: 0.2s; font-weight: bold; background: white; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .rt-radio-label input { display: none; }
+        .rt-radio-label:hover { border-color: var(--primary); background: #f9fafb; }
+        .rt-radio-label.selected { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+        .rt-radio-label.red-opt.selected { border-color: #ef4444; background: #fef2f2; color: #ef4444; }
+        .rt-radio-label.black-opt.selected { border-color: #374151; background: #f3f4f6; color: #374151; }
+        .roulette-wrapper { width: 120px; height: 120px; background: white; border-radius: 50%; border: 8px solid var(--dark); display: flex; justify-content: center; align-items: center; margin: 10px auto; box-shadow: 0 5px 15px rgba(0,0,0,0.2); position: relative; }
+        .roulette-wrapper::before { content:'▼'; position:absolute; top:-22px; color:var(--danger); font-size:1.5rem; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
+        .roulette-wheel { font-size: 2.5rem; font-weight: 800; color: var(--dark); }
+
+        /* Shop, Skills, Achievements */
+        .shop-item { background: white; padding: 12px; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .shop-info h4 { margin: 0; font-size: 0.95rem; color: var(--dark); }
+        .shop-info p { margin: 2px 0 0 0; font-size: 0.8rem; color: #6b7280; }
+        .shop-btn { width: auto; padding: 8px 12px; font-size: 0.8rem; }
+
+        .skill-item { background: white; padding: 12px; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 8px; }
+        .skill-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .skill-lv { background: var(--dark); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+        .skill-desc { font-size: 0.8rem; color: #6b7280; margin-bottom: 8px; }
+        .skill-bar-bg { height: 6px; background: #f3f4f6; border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+        .skill-bar-fill { height: 100%; background: var(--primary); width: 0%; }
+        
+        .ach-item { background: white; padding: 12px; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; opacity: 0.6; filter: grayscale(1); transition: 0.3s; }
+        .ach-item.unlocked { opacity: 1; filter: grayscale(0); border-color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .ach-item.claimed { opacity: 1; filter: grayscale(0); border-color: var(--success); background: #ecfdf5; }
+        .ach-info h4 { margin: 0; font-size: 0.9rem; } .ach-info p { margin: 0; font-size: 0.75rem; color: #6b7280; }
+
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-left: 5px solid var(--primary); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; max-width: 300px; pointer-events: auto; }
+        .toast-icon { font-size: 1.5rem; }
+        .toast-content b { display: block; font-size: 0.9rem; color: var(--dark); }
+        .toast-content span { font-size: 0.8rem; color: #6b7280; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; display: none; justify-content: center; align-items: center; backdrop-filter: blur(3px); cursor: pointer; }
+        .modal-box { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 320px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: modalUp 0.3s; position: relative; cursor: default; }
+        @keyframes modalUp { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        .modal-text { margin-bottom: 20px; font-size: 1rem; color: #333; line-height: 1.5; font-weight: 500; }
+        .modal-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .modal-btns button { padding: 12px 16px; width: 100%; margin: 0; }
+
+        /* Inventory Pop */
+        .inv-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9fafb; border-radius: 8px; margin-bottom: 6px; border: 1px solid #e5e7eb; font-size: 0.9rem; }
+        .inv-item-name { display: flex; align-items: center; gap: 8px; font-weight: bold; }
+        .inv-item-cnt { background: var(--dark); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; }
+        
+        /* Lucky Box Animation */
+        .gacha-box { font-size: 6rem; display: inline-block; margin: 20px 0; }
+        .shake-box { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) infinite both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0) rotate(-2deg); } 20%, 80% { transform: translate3d(2px, 0, 0) rotate(2deg); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0) rotate(-4deg); } 40%, 60% { transform: translate3d(4px, 0, 0) rotate(4deg); } }
+        .pop-result { animation: popResult 0.5s ease forwards; }
+        @keyframes popResult { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+
+        .settings-area textarea { font-size: 0.8rem; height: 80px; margin-bottom: 10px; color: #555; word-break: break-all; }
+		
+		/* 알바 화면 전용 스타일 */
+		.alba-container { display: flex; flex-direction: column; height: 100%; justify-content: space-between; }
+		.alba-dashboard { background: #fff; border-radius: 12px; padding: 12px; border: 1px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 10px; }
+		.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-bottom: 10px; border-bottom: 1px dashed #e9ecef; }
+		.stat-item { text-align: center; }
+		.stat-label { font-size: 0.75rem; color: #868e96; margin-bottom: 2px; }
+		.stat-value { font-size: 1rem; font-weight: 800; color: #343a40; }
+		.stat-value.highlight { color: var(--primary); font-size: 1.2rem; }
+		.bonus-badge { font-size: 0.65rem; color: var(--success); background: #e6fcf5; padding: 1px 5px; border-radius: 4px; vertical-align: middle; }
+		.slider-wrapper { padding: 5px 0; }
+		.compact-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #e9ecef; outline: none; margin: 10px 0; }
+		.compact-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--primary); cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+		.time-display { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; color: var(--primary); background: #f8f9fa; padding: 6px 10px; border-radius: 8px; }
+		.btn-work { width: 100%; padding: 12px; font-size: 1rem; border-radius: 12px; font-weight: bold; margin-top: 5px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        
+        /* Stock History Table */
+        .history-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .history-table th { text-align: left; padding: 8px; border-bottom: 2px solid #e5e7eb; color: #6b7280; }
+        .history-table td { padding: 8px; border-bottom: 1px solid #f3f4f6; color: var(--dark); }
+        .history-table .buy { color: var(--danger); font-weight: bold; }
+        .history-table .sell { color: var(--primary); font-weight: bold; }
+        .history-container { max-height: 300px; overflow-y: auto; margin-top: 10px; border: 1px solid #e5e7eb; border-radius: 8px; }
+		
+		/* 슬롯머신 */
+		.slot-reel { 
+			background: white; 
+			padding: 10px 20px; 
+			border-radius: 12px; 
+			box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+			min-width: 70px;
+			text-align: center;
+		}
+
+		/* 야바위 */
+		.shell-cup { 
+			cursor: pointer; 
+			text-align: center; 
+			padding: 10px;
+			border-radius: 12px;
+			transition: transform 0.2s;
+		}
+		.shell-cup:hover { 
+			transform: scale(1.1); 
+			background: rgba(79, 70, 229, 0.1);
+		}
+    </style>
+</head>
+<body>
+<audio id="alarm-sound" preload="auto">
+    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGB1O7Ujj0KE2Wx6t6oVRQLRp/g8r5sIQUxgdTu1I49ChNlsereo1UUC0af4PK/bCEFMYHU7tSNPQoTZbHq36hVFAtGn+DyvmwhBTGB1O7Ujj0KE2Wx6t+oVRQLRp/g8r5sIQUxgdTu1I49ChNlserfo1UUC0af4PK+bCEFMYHU7tSPPQoTZbHq3qNVFAtGn+DyvmwhBTGB1O7Ujj0KE2Wx6t6jVRQLRp/g8r5sIQUxgdTu1I89ChNlserfqFUUC0af4PK+bCEFMYHU7tSPPQoTZbHq3qNVFAtGn+DyvmwhBTGB1O7Ujz0KE2Wx6t+jVRQLRp/g8r5sIQUxgdTu1I89ChNlsereolUUC0af4PK+bCEFMYHU7tSPPQoTZbHq36NVFAtGn+DyvmwhBTGB1O7Ujz0KE2Wx6t+jVRQLRp/g8r5sIQUxgdTu1I89ChNlsereolUUC0af4PK+bCEFMYHU7tSPPQoTZbHq36NVFAtGn+DyvmwhBTGB1O7Ujz0KE2Wx" type="audio/wav">
+</audio>
+
+<div id="toast-container" class="toast-container"></div>
+<button class="gear-btn" onclick="openSettings()">⚙️</button>
+<button class="inv-btn" onclick="openInventory()">🎒</button>
+
+<div class="container">
+    <div id="modal-overlay" class="modal-overlay" onclick="if(event.target === this) closeModal()">
+        <div class="modal-box">
+            <div id="modal-content">
+                <div id="modal-text" class="modal-text"></div>
+                <div id="modal-btns" class="modal-btns"></div>
+            </div>
+            <div id="gacha-ui" style="display:none;">
+                <h3 style="justify-content:center; margin-bottom:10px;">🎁 럭키박스 개봉</h3>
+                <div id="gacha-icon" class="gacha-box">📦</div>
+                <p id="gacha-msg" style="font-weight:bold; color:var(--primary);">두근두근...</p>
+                <button id="gacha-confirm" onclick="closeModal()" style="display:none; width:100%; margin-top:15px;">확인</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="login-screen" class="screen active fade-in" style="justify-content:center; align-items:center; text-align: center;">
+        <h1 style="font-size: 3rem; margin-bottom: 10px;">🎮</h1><h2>미니게임 라운지</h2><p>RPG Edition</p>
+        <div style="margin-top: 30px; width:80%;"><input type="text" id="nicknameInput" placeholder="닉네임 입력"><button onclick="startGame()" style="margin-top: 10px;">입장하기</button></div>
+    </div>
+    
+    <div id="game-screen" class="screen fade-in">
+        <div class="stat-box">
+            <div id="vip-badge" class="vip-badge" style="display:none;">VIP</div>
+            <div class="user-row"><span>👤 <span id="user-info">Guest</span></span><span id="user-title" style="font-size:0.85em; font-weight:bold; color:#fbbf24;">Lv.1</span></div>
+            <div class="money-row">
+                <div><span style="font-size:0.6em; font-weight:normal;">₩</span> <span id="current-money">0</span></div>
+                <div id="debt-display" class="debt-text" style="display:none;">(빚: <span id="current-debt">0</span>)</div>
+            </div>
+            <div class="xp-container"><div class="xp-info"><span>EXP</span><span><span id="cur-xp">0</span> / <span id="max-xp">100</span></span></div><div class="xp-bar-bg"><div id="xp-bar" class="xp-bar-fill"></div></div></div>
+            <div id="status-msg" class="status-msg"></div>
+        </div>
+        
+        <div style="position:relative; width:100%;">
+            <div id="menu-area" class="grid-menu">
+                <button class="menu-btn" id="btn-money" onclick="togglePopMenu('money')"><span>💰</span>경제활동</button>
+                <button class="menu-btn" id="btn-game" onclick="togglePopMenu('game')"><span>🎲</span>미니게임</button>
+                <button class="menu-btn" id="btn-growth" onclick="togglePopMenu('growth')"><span>✨</span>성장/상점</button>
+            </div>
+            <div id="pop-menu" class="popover-menu"></div>
+        </div>
+        
+        <div id="content-area" class="game-area" onclick="closePopMenu()">
+            <div class="start-screen"><div class="start-icon">👆</div><p>메뉴를 선택해 게임을 시작하세요.</p></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 유틸리티 ---
+    function showMsg(m){
+        const o=document.getElementById('modal-overlay'), c=document.getElementById('modal-content'), g=document.getElementById('gacha-ui');
+        c.style.display='block'; g.style.display='none';
+        const t=document.getElementById('modal-text'),b=document.getElementById('modal-btns');
+        t.innerHTML=m; b.innerHTML=`<button onclick="closeModal()">확인</button>`;
+        o.style.display='flex';
+    }
+    function showConfirm(m,y){
+        const o=document.getElementById('modal-overlay'), c=document.getElementById('modal-content'), g=document.getElementById('gacha-ui');
+        c.style.display='block'; g.style.display='none';
+        const t=document.getElementById('modal-text'),b=document.getElementById('modal-btns');
+        t.innerHTML=m; b.innerHTML=`<button onclick="closeModal()" class="btn-outline" style="background:#f3f4f6;">취소</button><button id="modal-yes-btn">확인</button>`;
+        document.getElementById('modal-yes-btn').onclick=function(){closeModal();y();};
+        o.style.display='flex';
+    }
+    function closeModal(){document.getElementById('modal-overlay').style.display='none';}
+    function showToast(title, msg, icon="🔔"){
+        const c = document.getElementById('toast-container');
+        const d = document.createElement('div');
+        d.className = 'toast';
+        d.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-content"><b>${title}</b><span>${msg}</span></div>`;
+        c.appendChild(d);
+        setTimeout(()=>d.remove(), 3000);
+    }
+
+    // --- 팝업 메뉴 로직 ---
+    const MENUS = {
+        'money': [
+            { id: 'alba', name: '알바', icon: '🧹' },
+            { id: 'stock', name: '주식', icon: '📈' },
+            { id: 'bank', name: '사채', icon: '💸' }
+        ],
+        'game': [
+			{ id: 'dice', name: '주사위', icon: '🎲' },
+			{ id: 'blackjack', name: '블랙잭', icon: '🃏' },
+			{ id: 'roulette', name: '룰렛', icon: '🎡' },
+			{ id: 'slots', name: '슬롯머신', icon: '🎰' },
+			{ id: 'shell', name: '야바위', icon: '🥜' },
+			{ id: 'rps', name: '가위바위보', icon: '✊' }
+		],
+        'growth': [
+            { id: 'skills', name: '스킬', icon: '🎓' },
+            { id: 'shop', name: '상점', icon: '🛒' },
+            { id: 'achievements', name: '업적', icon: '🏆' }
+        ]
+    };
+
+    let activePop = null;
+    function togglePopMenu(category){
+        const pop = document.getElementById('pop-menu');
+        const btns = document.querySelectorAll('.menu-btn');
+        if(activePop === category){ closePopMenu(); return; }
+        btns.forEach(b => b.classList.remove('active-tab'));
+        document.getElementById('btn-' + category).classList.add('active-tab');
+        pop.innerHTML = '';
+        MENUS[category].forEach(item => {
+            const btn = document.createElement('div'); btn.className = 'submenu-btn';
+            btn.innerHTML = `<span>${item.icon}</span>${item.name}`;
+            btn.onclick = () => { openTab(item.id); closePopMenu(); };
+            pop.appendChild(btn);
+        });
+        pop.style.display = 'grid'; activePop = category;
+    }
+    function closePopMenu(){
+        document.getElementById('pop-menu').style.display = 'none'; activePop = null;
+        document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active-tab'));
+    }
+
+    // --- 데이터 관리 ---
+    let gameData = { 
+		nickname: "", money: 10000, debt: 0, lastInterest: 0, jobEndTime: 0, jobHours: 0, level: 1, xp: 0, maxXp: 100, 
+		rpsStreak: 0,
+        stocks: { "넥서스코어": { p: 5500, n: 0 }, "프라임노드": { p: 42000, n: 0 }, "네오시그마": { p: 150000, n: 0 }, "제로섹터": { p: 1250000, n: 0 } }, 
+        stockHistory: [], 
+        lastStockUpdate: 0,
+        vip: { level: 0, endTime: 0 }, 
+        skills: {
+            card: 0, dice: 0, roulette: 0, alba: 0, xp: 0,
+            diceProb: 0, bjStand: 0, rtProb: 0,
+            dicePay: 0, bjPay: 0, rtPay: 0,
+            slots: 0, slotProb: 0, slotPay: 0, shell: 0, shellPay: 0, rps: 0, rpsPay: 0
+        },
+        inventory: { luckyBox: 0, diceWin: 0, bjCard: 0, magnet: 0 },
+        stats: { 
+            totalWins: 0, totalMoney: 0, itemsUsed: 0, 
+            albaCount: 0, stockTrades: 0, loanCount: 0, 
+            diceWins: 0, bjWins: 0, rouletteWins: 0,
+            luckyBoxOpens: 0, luckyBoxFail: 0, luckyBoxJackpot: 0,
+            maxMoney: 10000,
+            diceItemUsed: 0, bjItemUsed: 0,
+            snakeEyesCount: 0, perfectSixCount: 0, rouletteZeroWins: 0,
+            consecutiveLoss: 0, maxConsecutiveLoss: 0,
+            // [추가된 통계 변수들]
+            vipSpent: 0, skillSpent: 0, maxDebt: 0,
+            stockBuyCount: 0, stockSellCount: 0,
+            rouletteRedWins: 0, totalClicks: 0
+        },
+        achievements: [], claimedAchievements: [] 
+    };
+    
+    const TITLES = [ "초심자", "아마추어", "동네 타짜", "프로 겜블러", "카지노 VIP", "도박왕", "전설의 승부사", "운명의 지배자", "미니게임 신", "GM" ];
+    const VIP_DATA = {
+        1: { name: "브론즈", cost: 100000, xp: 0.1, rebate: 0, stockMin: 25 },
+        2: { name: "실버", cost: 500000, xp: 0.15, rebate: 0.05, stockMin: 20 },
+        3: { name: "골드", cost: 3000000, xp: 0.20, rebate: 0.10, stockMin: 15 },
+        4: { name: "플래티넘", cost: 10000000, xp: 0.30, rebate: 0.20, stockMin: 10 }
+    };
+    
+    const SKILL_DATA = {
+        alba: { name: "재테크 전문가", desc: "알바 급여 +5%" },
+        xp: { name: "XP 부스터", desc: "모든 경험치 획득 +5%" },
+        dice: { name: "주사위 달인", desc: "주사위 패배 시 환급 +1%" },
+        diceProb: { name: "신의 주사위", desc: "주사위 승률 +1%" },
+        dicePay: { name: "주사위 잭팟", desc: "주사위 승리 상금 +3%" },
+        card: { name: "카드 마스터", desc: "블랙잭 패배 시 환급 +1%" },
+        bjStand: { name: "딜러의 실수", desc: "딜러 15 스탠드 확률 +2%" },
+        bjPay: { name: "블랙잭 잭팟", desc: "블랙잭 승리 상금 +3%" },
+        roulette: { name: "럭키 스타", desc: "룰렛 패배 시 환급 +1%" },
+        rtProb: { name: "예지력", desc: "룰렛 당첨 확률 +1%" },
+        rtPay: { name: "룰렛 잭팟", desc: "룰렛 승리 상금 +3%" },
+        slots: { name: "슬롯 매니아", desc: "슬롯머신 패배 시 환급 +1%" },
+        slotProb: { name: "행운의 릴", desc: "슬롯 승률 +1%" },
+        slotPay: { name: "슬롯 잭팟", desc: "슬롯 승리 상금 +3%" },
+        shell: { name: "야바위 고수", desc: "야바위 패배 시 환급 +1%" },
+        shellPay: { name: "야바위 잭팟", desc: "야바위 승리 상금 +3%" },
+        rps: { name: "가위바위보 전문", desc: "가위바위보 승률 +1%" },
+        rpsPay: { name: "연승 보너스", desc: "가위바위보 상금 +5%" }
+    };
+
+    // --- 대규모 업적 리스트 (확장됨) ---
+    const ACHIEVEMENTS = [
+        // [레벨]
+        { id: "lv5", name: "걸음마", desc: "레벨 5 달성", check: (d)=>d.level>=5 },
+        { id: "lv10", name: "초보 탈출", desc: "레벨 10 달성", check: (d)=>d.level>=10 },
+        { id: "lv20", name: "중수", desc: "레벨 20 달성", check: (d)=>d.level>=20 },
+        { id: "lv30", name: "고수", desc: "레벨 30 달성", check: (d)=>d.level>=30 },
+        { id: "lv40", name: "영웅", desc: "레벨 40 달성", check: (d)=>d.level>=40 },
+        { id: "lv50", name: "지배자", desc: "레벨 50 달성", check: (d)=>d.level>=50 },
+        { id: "lv60", name: "초월자", desc: "레벨 60 달성", check: (d)=>d.level>=60 },
+        { id: "lv70", name: "신화", desc: "레벨 70 달성", check: (d)=>d.level>=70 },
+        { id: "lv80", name: "불멸", desc: "레벨 80 달성", check: (d)=>d.level>=80 },
+        { id: "lv90", name: "절대자", desc: "레벨 90 달성", check: (d)=>d.level>=90 },
+        { id: "lv100", name: "만렙", desc: "레벨 100 달성", check: (d)=>d.level>=100 },
+
+        // [자산]
+        { id: "rich_500k", name: "티끌", desc: "50만원 보유", check: (d)=>d.money>=500000 },
+        { id: "rich_1m", name: "백만장자", desc: "100만원 보유", check: (d)=>d.money>=1000000 },
+        { id: "rich_5m", name: "오백만장자", desc: "500만원 보유", check: (d)=>d.money>=5000000 },
+        { id: "rich_10m", name: "천만장자", desc: "1,000만원 보유", check: (d)=>d.money>=10000000 },
+        { id: "rich_50m", name: "오천만장자", desc: "5,000만원 보유", check: (d)=>d.money>=50000000 },
+        { id: "rich_100m", name: "억 소리", desc: "1억 보유", check: (d)=>d.money>=100000000 },
+        { id: "rich_500m", name: "중견기업", desc: "5억 보유", check: (d)=>d.money>=500000000 },
+        { id: "rich_1b", name: "빌리어네어", desc: "10억 보유", check: (d)=>d.money>=1000000000 },
+        { id: "rich_10b", name: "재벌", desc: "100억 보유", check: (d)=>d.money>=10000000000 },
+        { id: "rich_1t", name: "월드클래스", desc: "1조 보유", check: (d)=>d.money>=1000000000000 },
+        { id: "money_pi", name: "수학자", desc: "소지금이 31415... 시작", check: (d)=>String(Math.floor(d.money)).startsWith("31415") },
+        { id: "money_lucky", name: "럭키가이", desc: "소지금 77777... 시작", check: (d)=>String(Math.floor(d.money)).startsWith("77777") },
+
+        // [빚]
+        { id: "debt_start", name: "신용 사회", desc: "첫 대출 실행", check: (d)=>d.stats.loanCount>=1 },
+        { id: "debt_10m", name: "빚쟁이", desc: "빚 1,000만원 돌파", check: (d)=>d.debt>=10000000 },
+        { id: "debt_100m", name: "파산 직전", desc: "빚 1억 돌파", check: (d)=>d.debt>=100000000 },
+        { id: "debt_1b", name: "어깨가 무겁다", desc: "빚 10억 돌파", check: (d)=>d.debt>=1000000000 },
+        { id: "debt_pro", name: "돌려막기", desc: "누적 대출 50회", check: (d)=>d.stats.loanCount>=50 },
+        { id: "debt_master", name: "신용 불량", desc: "누적 대출 100회", check: (d)=>d.stats.loanCount>=100 },
+        { id: "phoenix", name: "불사조", desc: "최대 빚 1억 기록 후 빚 청산", check: (d)=>d.debt===0 && d.stats.maxDebt>=100000000 },
+        
+        // [알바]
+        { id: "alba_10", name: "알바생", desc: "알바 10회", check: (d)=>d.stats.albaCount>=10 },
+        { id: "alba_50", name: "프로 알바러", desc: "알바 50회", check: (d)=>d.stats.albaCount>=50 },
+        { id: "alba_100", name: "직원 급", desc: "알바 100회", check: (d)=>d.stats.albaCount>=100 },
+        { id: "alba_500", name: "점장님", desc: "알바 500회", check: (d)=>d.stats.albaCount>=500 },
+        { id: "alba_1000", name: "노동의 요정", desc: "알바 1000회", check: (d)=>d.stats.albaCount>=1000 },
+        { id: "night_shift", name: "야간 근무", desc: "새벽 2~4시에 알바 완료", check: (d)=>{ const h=new Date().getHours(); return (h>=2 && h<4) && d.stats.albaCount>0 && d.jobEndTime===0; }},
+        { id: "rich_worker", name: "취미로 일함", desc: "10억 이상 보유 중 알바", check: (d)=>d.money>=1000000000 && d.stats.albaCount>0 && d.jobEndTime===0 },
+
+        // [주식]
+        { id: "stock_beginner", name: "주린이", desc: "주식 거래 50회", check: (d)=>d.stats.stockTrades>=50 },
+        { id: "stock_trader", name: "트레이더", desc: "주식 거래 500회", check: (d)=>d.stats.stockTrades>=500 },
+        { id: "stock_master", name: "여의도 큰손", desc: "주식 거래 1,000회", check: (d)=>d.stats.stockTrades>=1000 },
+        { id: "stock_sell_king", name: "손절의 달인", desc: "매도 횟수 100회", check: (d)=>d.stats.stockSellCount>=100 },
+        { id: "owner_nexus", name: "넥서스 대주주", desc: "넥서스 1,000주 보유", check: (d)=>d.stocks["넥서스코어"].n>=1000 },
+        { id: "owner_prime", name: "프라임 대주주", desc: "프라임 500주 보유", check: (d)=>d.stocks["프라임노드"].n>=500 },
+        { id: "owner_neo", name: "네오 대주주", desc: "네오 100주 보유", check: (d)=>d.stocks["네오시그마"].n>=100 },
+        { id: "owner_zero", name: "제로 정복", desc: "제로섹터 10주 보유", check: (d)=>d.stocks["제로섹터"].n>=10 },
+        { id: "portfolio", name: "분산 투자", desc: "모든 종목 1주 이상 보유", check: (d)=>Object.values(d.stocks).every(s=>s.n>=1) },
+
+        // [도박 - 종합]
+        { id: "win_10", name: "운수 좋은 날", desc: "총 승리 10회", check: (d)=>d.stats.totalWins>=10 },
+        { id: "win_100", name: "타짜 입문", desc: "총 승리 100회", check: (d)=>d.stats.totalWins>=100 },
+        { id: "win_500", name: "베가스 전설", desc: "총 승리 500회", check: (d)=>d.stats.totalWins>=500 },
+        { id: "win_1000", name: "도박의 신", desc: "총 승리 1,000회", check: (d)=>d.stats.totalWins>=1000 },
+        { id: "lose_streak_5", name: "억까", desc: "5연패 달성", check: (d)=>d.stats.maxConsecutiveLoss>=5 },
+        { id: "lose_streak_10", name: "마이너스의 손", desc: "10연패 달성", check: (d)=>d.stats.maxConsecutiveLoss>=10 },
+        { id: "lose_streak_20", name: "자선 사업가", desc: "20연패 달성", check: (d)=>d.stats.maxConsecutiveLoss>=20 },
+
+        // [주사위]
+        { id: "dice_win_50", name: "주사위 고수", desc: "주사위 50회 승리", check: (d)=>d.stats.diceWins>=50 },
+        { id: "dice_win_200", name: "주사위 장인", desc: "주사위 200회 승리", check: (d)=>d.stats.diceWins>=200 },
+        { id: "snake_eyes", name: "스네이크 아이", desc: "1, 1, 1 패배", check: (d)=>d.stats.snakeEyesCount>=1 },
+        { id: "dice_666", name: "악마의 숫자", desc: "노템 6, 6, 6 승리", check: (d)=>d.stats.perfectSixCount>=1 },
+        { id: "dice_item", name: "사기 주사위", desc: "아이템 10회 사용", check: (d)=>d.stats.diceItemUsed>=10 },
+
+        // [블랙잭]
+        { id: "bj_win_50", name: "카드 카운팅", desc: "블랙잭 50회 승리", check: (d)=>d.stats.bjWins>=50 },
+        { id: "bj_win_200", name: "테이블 지배", desc: "블랙잭 200회 승리", check: (d)=>d.stats.bjWins>=200 },
+        { id: "bj_item", name: "밑장 빼기", desc: "카드 아이템 10회 사용", check: (d)=>d.stats.bjItemUsed>=10 },
+        
+        // [룰렛]
+        { id: "rou_win_50", name: "행운의 바퀴", desc: "룰렛 50회 승리", check: (d)=>d.stats.rouletteWins>=50 },
+        { id: "rou_win_200", name: "운명의 주인", desc: "룰렛 200회 승리", check: (d)=>d.stats.rouletteWins>=200 },
+        { id: "rou_zero", name: "0의 기적", desc: "숫자 0 당첨", check: (d)=>d.stats.rouletteZeroWins>=1 },
+        { id: "rou_red_10", name: "빨간맛", desc: "Red 배팅 승리 10회", check: (d)=>d.stats.rouletteRedWins>=10 },
+        
+        // [슬롯머신]
+        { id: "slot_win_10", name: "슬롯 입문", desc: "슬롯머신 10회 승리", check: (d)=>d.stats.slotsWins>=10 },
+        { id: "slot_win_50", name: "슬롯 마스터", desc: "슬롯머신 50회 승리", check: (d)=>d.stats.slotsWins>=50 },
+        { id: "slot_win_200", name: "잭팟 헌터", desc: "슬롯머신 200회 승리", check: (d)=>d.stats.slotsWins>=200 },
+        { id: "slot_jackpot", name: "7️⃣7️⃣7️⃣", desc: "슬롯 잭팟 당첨", check: (d)=>d.stats.slotJackpots>=1 },
+        
+        // [야바위]
+        { id: "shell_win_10", name: "관찰력", desc: "야바위 10회 승리", check: (d)=>d.stats.shellWins>=10 },
+        { id: "shell_win_50", name: "예리한 눈", desc: "야바위 50회 승리", check: (d)=>d.stats.shellWins>=50 },
+        { id: "shell_win_100", name: "야바위 고수", desc: "야바위 100회 승리", check: (d)=>d.stats.shellWins>=100 },
+        { id: "shell_streak_5", name: "연속 정답", desc: "야바위 5연승", check: (d)=>d.stats.shellMaxStreak>=5 },
+        
+        // [가위바위보]
+        { id: "rps_win_10", name: "묵찌빠", desc: "가위바위보 10회 승리", check: (d)=>d.stats.rpsWins>=10 },
+        { id: "rps_win_50", name: "가위바위보 달인", desc: "가위바위보 50회 승리", check: (d)=>d.stats.rpsWins>=50 },
+        { id: "rps_streak_5", name: "5연승", desc: "가위바위보 5연승 달성", check: (d)=>d.stats.rpsMaxStreak>=5 },
+        { id: "rps_streak_10", name: "10연승", desc: "가위바위보 10연승 달성", check: (d)=>d.stats.rpsMaxStreak>=10 },
+        { id: "rps_claim_3", name: "안전파", desc: "3연승 상금 3회 수령", check: (d)=>d.stats.rpsClaimed>=3 },
+        { id: "rps_big_win", name: "탐욕의 끝", desc: "7연승 이상 상금 수령", check: (d)=>d.stats.rpsBigWin>=1 },
+        
+        // [상점 & 아이템]
+        { id: "box_10", name: "소확행", desc: "럭키박스 10회 오픈", check: (d)=>d.stats.luckyBoxOpens>=10 },
+        { id: "box_100", name: "가챠 중독", desc: "럭키박스 100회 오픈", check: (d)=>d.stats.luckyBoxOpens>=100 },
+        { id: "box_500", name: "큰손", desc: "럭키박스 500회 오픈", check: (d)=>d.stats.luckyBoxOpens>=500 },
+        { id: "box_jackpot", name: "대박!", desc: "럭키박스 50만 당첨", check: (d)=>d.stats.luckyBoxJackpot>=1 },
+        { id: "vip_user", name: "흑우", desc: "VIP 누적 1억 사용", check: (d)=>d.stats.vipSpent>=100000000 },
+        { id: "full_inven", name: "풀 파밍", desc: "모든 아이템 10개씩 보유", check: (d)=>d.inventory.diceWin>=10 && d.inventory.bjCard>=10 && d.inventory.magnet>=10 },
+        
+        // [스킬]
+        { id: "skill_one_max", name: "장인 정신", desc: "한 스킬 마스터(Lv.10)", check: (d)=>Object.values(d.skills).some(v=>v>=10) },
+        { id: "skill_all_5", name: "다재다능", desc: "모든 스킬 Lv.5 달성", check: (d)=>Object.values(d.skills).every(v=>v>=5) },
+        { id: "skill_all_max", name: "그랜드마스터", desc: "모든 스킬 마스터", check: (d)=>Object.values(d.skills).every(v=>v>=10) },
+        { id: "skill_rich", name: "학구열", desc: "스킬에 1억 이상 투자", check: (d)=>d.stats.skillSpent>=100000000 },
+
+        // [히든 & 기타]
+        { id: "click_100", name: "손가락 운동", desc: "화면 100번 클릭", check: (d)=>d.stats.totalClicks>=100 },
+        { id: "click_1000", name: "마우스 브레이커", desc: "화면 1,000번 클릭", check: (d)=>d.stats.totalClicks>=1000 },
+        { id: "beggar", name: "무소유", desc: "돈 0원, 주식 0개", check: (d)=>d.money===0 && Object.values(d.stocks).every(s=>s.n===0) },
+        { id: "hidden_owl", name: "올빼미", desc: "새벽 3시에 접속", check: (d)=>new Date().getHours() === 3 },
+    ];
+
+    let diceState={step:0,myDice:[],dealerDice:[],bet:0}, bjState={deck:[],playerHand:[],dealerHand:[],bet:0,playing:false,itemUsed:false};
+    const HOURLY_WAGE = 10320, JOB_DURATION = 60*60*1000;
+    const INTEREST_RATE = 0.05, INTEREST_INTERVAL = 60*1000;
+
+    window.onload=function(){
+        // 전역 클릭 카운트
+        document.addEventListener('click', () => {
+            gameData.stats.totalClicks = (gameData.stats.totalClicks || 0) + 1;
+        });
+
+        if(localStorage.getItem('rpgGameData')){
+            try {
+                let l=JSON.parse(localStorage.getItem('rpgGameData'));
+                if(!l.inventory) l.inventory = { luckyBox:0, diceWin:0, bjCard:0, magnet:0 }; 
+                if(!l.stockHistory) l.stockHistory = []; 
+
+                for(let k in SKILL_DATA){
+                    if(l.skills[k] === undefined) l.skills[k] = 0;
+                }
+
+                if(l.inventory.xRay !== undefined) { l.inventory.bjCard = (l.inventory.bjCard||0) + l.inventory.xRay; delete l.inventory.xRay; }
+                if(l.inventory.goldCharm !== undefined) { l.inventory.magnet = (l.inventory.magnet||0) + l.inventory.goldCharm; delete l.inventory.goldCharm; }
+                
+                if(!l.stats) l.stats = { totalWins:0, totalMoney:0, itemsUsed:0 };
+                
+                // 데이터 마이그레이션 (새 변수 초기화)
+                const newStats = ['snakeEyesCount','perfectSixCount','rouletteZeroWins','consecutiveLoss','maxConsecutiveLoss',
+                                  'vipSpent','skillSpent','maxDebt','stockBuyCount','stockSellCount','rouletteRedWins','totalClicks'];
+                newStats.forEach(k => { if(l.stats[k] === undefined) l.stats[k] = 0; });
+
+                if(!l.claimedAchievements) l.claimedAchievements = [];
+                if(l.stats.diceItemUsed === undefined) l.stats.diceItemUsed = 0;
+                if(l.stats.bjItemUsed === undefined) l.stats.bjItemUsed = 0;
+				if(l.jobHours === undefined) l.jobHours = 1;
+
+                gameData={...gameData, ...l};
+                if(gameData.nickname) showGameScreen();
+            } catch(e) { console.error(e); localStorage.removeItem('rpgGameData'); }
+        }
+        setInterval(gameLoop,1000);
+        checkAchievements();
+    };
+
+    function saveData(){ 
+        gameData.money = Math.floor(gameData.money);
+        if(gameData.money > gameData.stats.maxMoney) gameData.stats.maxMoney = gameData.money; 
+        localStorage.setItem('rpgGameData',JSON.stringify(gameData)); 
+        updateUI(); 
+    }
+    
+    function startGame(){
+        const n=document.getElementById('nicknameInput').value;
+        if(!n)return showMsg("닉네임을 입력하세요.");
+        gameData.nickname=n; gameData.money=10000;
+        saveData(); checkAchievements(); showGameScreen();
+    }
+    function showGameScreen(){
+        document.getElementById('login-screen').classList.remove('active');
+        document.getElementById('game-screen').classList.add('active');
+        updateUI();
+    }
+    function gainXP(baseXP){
+        if(baseXP<=0) return;
+        let multi = 1;
+        if(isVipActive()) multi += VIP_DATA[gameData.vip.level].xp;
+        if(gameData.skills.xp > 0) multi += (gameData.skills.xp * 0.05);
+        if(gameData.vip.level === 4) multi += 0.03;
+        gameData.xp += Math.floor(baseXP * multi);
+        if(gameData.xp >= gameData.maxXp){
+            gameData.xp -= gameData.maxXp; gameData.level++; gameData.maxXp = Math.floor(gameData.maxXp * 1.5);
+            showMsg(`🎉 <b>레벨 업!</b><br>Lv.${gameData.level} 달성!`);
+            checkAchievements();
+        }
+        saveData();
+    }
+    function isVipActive(){ return gameData.vip.level > 0 && Date.now() < gameData.vip.endTime; }
+    
+    function checkAchievements(){
+        let changed = false;
+        ACHIEVEMENTS.forEach(ac => {
+            if(!gameData.achievements.includes(ac.id) && ac.check(gameData)){
+                gameData.achievements.push(ac.id);
+                showToast("🏆 업적 달성!", ac.name);
+                changed = true;
+                if(document.getElementById('content-area').innerHTML.includes('업적 현황')) openTab('achievements');
+            }
+        });
+        if(changed) saveData();
+    }
+
+    // --- [추가] 야간 시간 판별 함수 (오후 10시 ~ 오전 6시) ---
+    function isNightTime(timestamp) {
+        const h = new Date(timestamp).getHours();
+        return h >= 22 || h < 6;
+    }
+	
+	// [수정] 야간 시간(22시~06시)이 몇 시간 포함되었는지 계산하는 함수
+	function getNightHourCount(endTime, totalHours) {
+		let nightCount = 0;
+		const oneHourMs = 60 * 60 * 1000;
+		// 시작 시간 역산
+		const startTime = endTime - (totalHours * oneHourMs);
+
+		for (let i = 0; i < totalHours; i++) {
+			// 각 근무 시간의 시작 시점을 기준으로 시간 확인
+			// (예: 21:00~22:00 근무라면 21시를 기준으로 판단)
+			let checkTime = new Date(startTime + (i * oneHourMs));
+			let h = checkTime.getHours();
+			
+			// 22시 이상이거나 6시 미만이면 야간 시간으로 인정
+			if (h >= 22 || h < 6) {
+				nightCount++;
+			}
+		}
+		return nightCount;
+	}
+
+    function gameLoop(){
+        const now = Date.now();
+        
+        // gameLoop 내부의 알바 완료 로직 수정 부분
+		if(gameData.jobEndTime > 0 && now >= gameData.jobEndTime){
+		let hours = gameData.jobHours || 1;
+		let baseWage = HOURLY_WAGE; // 기본 시급
+		
+		// 알림 소리 재생
+		const alarmSound = document.getElementById('alarm-sound');
+		if(alarmSound) {
+			alarmSound.volume = 0.5;
+			alarmSound.play().catch(e => console.log('소리 재생 실패:', e));
+		}
+		
+		// 1. 스킬 보너스 적용 (기본 시급 상승)
+		if(gameData.skills.alba > 0) baseWage += Math.floor(baseWage * (gameData.skills.alba * 0.05));
+		
+		// 2. [수정] 야간/주간 시간 분리 계산
+		let nightHours = getNightHourCount(gameData.jobEndTime, hours);
+		let dayHours = hours - nightHours;
+
+		// 주간 급여 + 야간 급여(1.5배)
+		let totalWage = (dayHours * baseWage) + (nightHours * Math.floor(baseWage * 1.5));
+
+		gameData.money += totalWage; 
+		gameData.jobEndTime = 0; 
+		gameData.jobHours = 0; 
+		gameData.stats.albaCount++; 
+		
+		gainXP(10 * hours); 
+		
+		// 메시지 생성
+		let nightMsg = nightHours > 0 ? ` <span style="color:#a855f7; font-weight:bold;">(🌙야간 ${nightHours}시간)</span>` : "";
+		
+		showMsg(`💰 <b>아르바이트 완료!</b>${nightMsg}<br>${hours}시간 근무 수당<br><span style="color:var(--success); font-size:1.2rem;">+${totalWage.toLocaleString()}원</span> 입금`);
+		checkAchievements();
+		saveData(); 
+		if(document.getElementById('content-area').innerHTML.includes('알바천국')) openTab('alba');
+	}
+        
+        let intervalMin = isVipActive() ? VIP_DATA[gameData.vip.level].stockMin : 30;
+        let intervalMs = intervalMin * 60 * 1000;
+        let lastBlock = Math.floor(gameData.lastStockUpdate / intervalMs);
+        let currentBlock = Math.floor(now / intervalMs);
+        if(currentBlock > lastBlock){
+            for(let k in gameData.stocks){
+                let c = (Math.random() * 0.2) - 0.1;
+                gameData.stocks[k].p = Math.max(100, Math.floor(gameData.stocks[k].p * (1 + c)));
+            }
+            gameData.lastStockUpdate = now; 
+            checkAchievements();
+            saveData();
+            if(document.getElementById('content-area').innerHTML.includes('주식 시장')) openTab('stock');
+        }
+        const timerEl = document.getElementById('stock-timer');
+        if(timerEl) {
+            const nextTime = (currentBlock + 1) * intervalMs; const diff = nextTime - now;
+            if(diff > 0){ const min = Math.floor(diff / 60000); const sec = Math.floor((diff % 60000) / 1000); timerEl.innerText = `(갱신: ${min}:${sec < 10 ? '0'+sec : sec})`; } else { timerEl.innerText = "(갱신 중...)"; }
+        }
+        if(gameData.debt > 0) {
+            const passedTime = now - gameData.lastInterest;
+            if(passedTime >= INTEREST_INTERVAL){
+                const intervals = Math.floor(passedTime / INTEREST_INTERVAL); const oldDebt = gameData.debt;
+                gameData.debt = Math.floor(gameData.debt * Math.pow(1 + INTEREST_RATE, intervals));
+                gameData.lastInterest += intervals * INTEREST_INTERVAL;
+                showMsg(`📉 <b>이자 폭탄!</b><br>${intervals}분치 이자 (+${(gameData.debt - oldDebt).toLocaleString()}원)`);
+                saveData(); if(document.getElementById('content-area').innerHTML.includes('대출금')) openTab('bank');
+                checkAchievements();
+            }
+        }
+        if(gameData.vip.level > 0 && now > gameData.vip.endTime){ showMsg(`📢 <b>VIP 멤버십 만료</b><br>혜택이 종료되었습니다.`); gameData.vip.level = 0; saveData(); }
+        updateUI();
+    }
+
+    function updateUI(){
+        document.getElementById('user-info').innerText = gameData.nickname;
+        document.getElementById('current-money').innerText = Math.floor(gameData.money).toLocaleString();
+        const vipBadge = document.getElementById('vip-badge');
+        if(isVipActive()){
+            vipBadge.style.display = 'block'; vipBadge.className = 'vip-badge ' + (gameData.vip.level >= 3 ? 'vip-gold' : '');
+            if(gameData.vip.level === 4) vipBadge.classList.add('vip-plat'); vipBadge.innerText = `VIP ${VIP_DATA[gameData.vip.level].name}`;
+        } else vipBadge.style.display = 'none';
+        const debtDiv = document.getElementById('debt-display');
+        if(gameData.debt > 0){ debtDiv.style.display = 'block'; document.getElementById('current-debt').innerText = gameData.debt.toLocaleString(); } else debtDiv.style.display = 'none';
+        let t = Math.floor(gameData.level / 10); if(t >= TITLES.length) t = TITLES.length - 1;
+        document.getElementById('user-title').innerText = `Lv.${gameData.level} ${TITLES[t]}`;
+        document.getElementById('cur-xp').innerText = Math.floor(gameData.xp);
+        document.getElementById('max-xp').innerText = Math.floor(gameData.maxXp);
+        document.getElementById('xp-bar').style.width = `${Math.min(100, (gameData.xp / gameData.maxXp) * 100)}%`;
+        const m = document.getElementById('status-msg');
+        let statusText = "";
+        if(Date.now() < gameData.jobEndTime) statusText = `⏳ 알바 중... ${Math.ceil((gameData.jobEndTime - Date.now()) / 1000)}초`;
+        m.innerText = statusText;
+        updateItemToggles();
+    }
+    
+    // --- 인벤토리 & 아이템 토글 ---
+    function openInventory(){
+        const o=document.getElementById('modal-overlay'), c=document.getElementById('modal-content'), g=document.getElementById('gacha-ui');
+        c.style.display='block'; g.style.display='none';
+        const t=document.getElementById('modal-text'),b=document.getElementById('modal-btns');
+        
+        const lbCount = gameData.inventory.luckyBox;
+        const lbBtn = lbCount > 0 ? `<button onclick="openLuckyBoxUI()" style="width:auto; padding:4px 10px; font-size:0.75rem; margin-left:auto;">사용</button>` : '';
+
+        t.innerHTML = `<h3>🎒 내 가방</h3>
+        <div style="text-align:left; margin-top:10px;">
+            <div class="inv-item-row">
+                <span class="inv-item-name">📦 럭키박스</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="inv-item-cnt">${lbCount}개</span>
+                    ${lbBtn}
+                </div>
+            </div>
+            <div class="inv-item-row"><span class="inv-item-name">🎲 승리의 주사위</span><span class="inv-item-cnt">${gameData.inventory.diceWin}개</span></div>
+            <div class="inv-item-row"><span class="inv-item-name">🃏 딜러 제약 카드</span><span class="inv-item-cnt">${gameData.inventory.bjCard}개</span></div>
+            <div class="inv-item-row"><span class="inv-item-name">🧲 룰렛 자석</span><span class="inv-item-cnt">${gameData.inventory.magnet}개</span></div>
+        </div>`;
+        b.innerHTML = `<button onclick="closeModal()" style="width:100%;">닫기</button>`;
+        o.style.display='flex';
+    }
+
+    function updateItemToggles(){
+        const diceToggle = document.getElementById('use-dice-item-check');
+        const diceLabel = document.getElementById('use-dice-item-label');
+        if(diceToggle && diceLabel){
+            const cnt = gameData.inventory.diceWin;
+            diceLabel.innerText = `🎲 승리 주사위 (${cnt})`;
+            if(cnt <= 0) { diceToggle.checked = false; diceToggle.disabled = true; diceLabel.parentElement.classList.add('disabled'); }
+            else { diceToggle.disabled = false; diceLabel.parentElement.classList.remove('disabled'); }
+        }
+        const bjToggle = document.getElementById('use-bj-item-check');
+        const bjLabel = document.getElementById('use-bj-item-label');
+        if(bjToggle && bjLabel){
+            const cnt = gameData.inventory.bjCard;
+            bjLabel.innerText = `🃏 딜러 제약 (${cnt})`;
+            if(cnt <= 0) { bjToggle.checked = false; bjToggle.disabled = true; bjLabel.parentElement.classList.add('disabled'); }
+            else { bjToggle.disabled = false; bjLabel.parentElement.classList.remove('disabled'); }
+        }
+        const rtToggle = document.getElementById('use-rt-item-check');
+        const rtLabel = document.getElementById('use-rt-item-label');
+        if(rtToggle && rtLabel){
+            const cnt = gameData.inventory.magnet;
+            rtLabel.innerText = `🧲 자석 (${cnt})`;
+            if(cnt <= 0) { rtToggle.checked = false; rtToggle.disabled = true; rtLabel.parentElement.classList.add('disabled'); }
+            else { rtToggle.disabled = false; rtLabel.parentElement.classList.remove('disabled'); }
+        }
+    }
+
+    function openTab(t){
+		const c = document.getElementById('content-area'); c.innerHTML = ""; c.className = "game-area fade-in";
+		switch(t){
+			case 'alba': renderAlba(c); break;
+			case 'stock': renderStock(c); break;
+			case 'dice': renderDice(c); break;
+			case 'blackjack': renderBlackjack(c); break;
+			case 'roulette': renderRoulette(c); break;
+			case 'slots': slotsTab(); break;
+			case 'shell': shellTab(); break;
+			case 'rps': rpsTab(); break;
+			case 'bank': renderBank(c); break;
+			case 'skills': renderSkills(c, true); break;
+			case 'shop': renderShop(c); break;
+			case 'achievements': renderAchievements(c); break;
+		}
+		updateItemToggles();
+	}
+
+    function processResult(win, bet, payoutMult, gameType){
+        let resultValue = 0;
+
+        if(win){
+            let bonusMult = 0;
+            if(gameType === 'dice' && gameData.skills.dicePay > 0) bonusMult = gameData.skills.dicePay * 0.03;
+            if(gameType === 'blackjack' && gameData.skills.bjPay > 0) bonusMult = gameData.skills.bjPay * 0.03;
+            if(gameType === 'roulette' && gameData.skills.rtPay > 0) bonusMult = gameData.skills.rtPay * 0.03;
+            
+            let totalMult = payoutMult * (1 + bonusMult);
+            let profit = Math.floor(bet * totalMult);
+            
+            gameData.money += profit; 
+            gameData.stats.totalWins++; 
+            gameData.stats.consecutiveLoss = 0;
+            resultValue = profit;
+        } else {
+            let rebateRate = 0;
+            if(isVipActive()) rebateRate += VIP_DATA[gameData.vip.level].rebate;
+            if(gameType === 'blackjack' && gameData.skills.card > 0) rebateRate += (gameData.skills.card * 0.01);
+            if(gameType === 'dice' && gameData.skills.dice > 0) rebateRate += (gameData.skills.dice * 0.01);
+            if(gameType === 'roulette' && gameData.skills.roulette > 0) rebateRate += (gameData.skills.roulette * 0.01);
+            
+            if(rebateRate > 0){ 
+                const rebate = Math.floor(bet * rebateRate); 
+                gameData.money += rebate; 
+                resultValue = -1 * rebate; 
+            }
+            
+            gameData.stats.consecutiveLoss = (gameData.stats.consecutiveLoss || 0) + 1;
+            if(gameData.stats.consecutiveLoss > gameData.stats.maxConsecutiveLoss) {
+                gameData.stats.maxConsecutiveLoss = gameData.stats.consecutiveLoss;
+            }
+        }
+        checkAchievements(); 
+        return resultValue;
+    }
+
+    // --- 렌더링 함수들 ---
+    function renderShop(c, keepScroll = false){
+        let oldScroll = 0; if(keepScroll && c.querySelector('.scroll-view')) oldScroll = c.querySelector('.scroll-view').scrollTop;
+        let itemsHtml = `<div class="shop-item" style="border-color:var(--primary); background:#fdfeff;"><div class="shop-info"><h4>🎁 럭키박스</h4><p>50% 꽝, 대박의 기회!</p></div><button class="btn-success shop-btn" onclick="buyBox()">₩50,000</button></div>`;
+        for(let lv=1; lv<=4; lv++){ let v = VIP_DATA[lv]; itemsHtml += `<div class="shop-item"><div class="shop-info"><h4>${v.name} 멤버십 (30분)</h4><p>XP+${v.xp*100}%, 환급 ${v.rebate*100}%, 주식 ${v.stockMin}분</p></div><button class="shop-btn" onclick="buyVip(${lv})">₩${(v.cost/10000).toLocaleString()}만</button></div>`; }
+        c.innerHTML = `<div class="full-height-layout"><h3>🛒 아이템 상점</h3><div class="scroll-view">${itemsHtml}</div></div>`;
+        if(keepScroll && c.querySelector('.scroll-view')) c.querySelector('.scroll-view').scrollTop = oldScroll;
+    }
+    function buyBox(){
+        if(gameData.money < 50000) return showMsg("돈이 부족합니다.");
+        gameData.money -= 50000; gameData.inventory.luckyBox++; saveData(); showToast("구매 완료", "럭키박스 +1"); renderShop(document.getElementById('content-area'), true);
+        checkAchievements();
+    }
+    function openLuckyBoxUI(){
+        if(gameData.inventory.luckyBox <= 0) return showMsg("상자가 없습니다.");
+        const o=document.getElementById('modal-overlay'), c=document.getElementById('modal-content'), g=document.getElementById('gacha-ui');
+        const icon=document.getElementById('gacha-icon'), msg=document.getElementById('gacha-msg'), btn=document.getElementById('gacha-confirm');
+        c.style.display='none'; g.style.display='block'; o.style.display='flex';
+        icon.innerText = "📦"; icon.className = "gacha-box shake-box"; msg.innerText = "두근두근..."; msg.style.color = "var(--primary)"; btn.style.display = 'none';
+        setTimeout(()=>{
+            gameData.inventory.luckyBox--; gameData.stats.luckyBoxOpens++; const r = Math.random() * 100;
+            let res = "", log = "", resIcon = ""; icon.className = "gacha-box pop-result"; 
+            if(r < 50) { resIcon = "💨"; res = "꽝!"; log="아무것도 없었다..."; msg.style.color="#9ca3af"; gameData.stats.luckyBoxFail++; }
+            else if(r < 75) { let m = 5000 + Math.floor(Math.random()*5001); gameData.money+=m; resIcon = "🗑️"; res = "잡동사니 발견"; log=`+${m}원`; msg.style.color="#6b7280"; }
+            else if(r < 90) { let m = 20000 + Math.floor(Math.random()*30001); gameData.money+=m; resIcon = "💵"; res = "비상금 발견!"; log=`+${m.toLocaleString()}원`; msg.style.color="var(--success)"; }
+            else if(r < 95) { gameData.inventory.diceWin++; resIcon="🎲"; res="승리의 주사위!"; log="획득!"; msg.style.color="var(--purple)"; }
+            else if(r < 98) { gameData.inventory.bjCard++; resIcon="🃏"; res="딜러 제약 카드!"; log="획득!"; msg.style.color="var(--purple)"; }
+            else if(r < 99.5) { gameData.inventory.magnet++; resIcon="🧲"; res="룰렛 자석!"; log="획득!"; msg.style.color="var(--gold)"; }
+            else { gameData.money+=500000; resIcon="💎"; res="대박!"; log="현금 50만원!"; msg.style.color="#ec4899"; icon.style.textShadow="0 0 20px rgba(236, 72, 153, 0.5)"; gameData.stats.luckyBoxJackpot++; }
+            icon.innerText = resIcon; msg.innerHTML = `<span style="font-size:1.2rem">${res}</span><br><span style="font-size:0.9rem; color:#555; font-weight:normal;">${log}</span>`;
+            btn.style.display = 'block'; gameData.stats.itemsUsed++; saveData(); checkAchievements();
+        }, 2000);
+    }
+    function buyVip(lv){
+        if(gameData.money < VIP_DATA[lv].cost) return showMsg("돈이 부족합니다.");
+        showConfirm(`${VIP_DATA[lv].name} 멤버십을 구매하시겠습니까?`, ()=>{
+            gameData.money -= VIP_DATA[lv].cost; 
+            gameData.stats.vipSpent = (gameData.stats.vipSpent || 0) + VIP_DATA[lv].cost;
+            gameData.vip.level = lv; gameData.vip.endTime = Date.now() + (30 * 60 * 1000);
+            saveData(); showMsg(`${VIP_DATA[lv].name} 혜택이 적용되었습니다!`); renderShop(document.getElementById('content-area'), true);
+            checkAchievements();
+        });
+    }
+
+    function renderSkills(c, keepScroll = false){
+        let oldScroll = 0; 
+        if(keepScroll && c.querySelector('.scroll-view')) oldScroll = c.querySelector('.scroll-view').scrollTop;
+        
+        let h = `<div class="full-height-layout"><h3>🎓 스킬 트리</h3><div class="scroll-view">`;
+        for(let key in SKILL_DATA){
+            let lv = gameData.skills[key] || 0; let nextCost = 50000 * Math.pow(2, lv); let max = lv >= 10;
+            h += `<div class="skill-item"><div class="skill-header"><b>${SKILL_DATA[key].name}</b><span class="skill-lv">Lv.${lv}/10</span></div><div class="skill-desc">${SKILL_DATA[key].desc}</div><div class="skill-bar-bg"><div class="skill-bar-fill" style="width:${lv*10}%"></div></div><button class="${max?'btn-outline':'btn-primary'} btn-sm" ${max?'disabled':''} onclick="upgradeSkill('${key}', ${nextCost})" style="width:100%;">${max ? 'Mastered' : '업그레이드 (₩'+nextCost.toLocaleString()+')'}</button></div>`;
+        }
+        c.innerHTML = h + `</div></div>`;
+
+        if(keepScroll && c.querySelector('.scroll-view')) c.querySelector('.scroll-view').scrollTop = oldScroll;
+    }
+    
+    function upgradeSkill(key, cost){
+        if(gameData.money < cost) return showMsg("돈이 부족합니다.");
+        showConfirm(`'${SKILL_DATA[key].name}' 레벨업 하시겠습니까?`, () => {
+            gameData.money -= cost; 
+            gameData.stats.skillSpent = (gameData.stats.skillSpent || 0) + cost;
+            gameData.skills[key]++; saveData(); 
+            showToast("스킬 업그레이드", `Lv.${gameData.skills[key]} 달성!`); 
+            renderSkills(document.getElementById('content-area'), true);
+            checkAchievements();
+        });
+    }
+
+    function renderAchievements(c, keepScroll = false){
+        let oldScroll = 0; if(keepScroll && c.querySelector('.scroll-view')) oldScroll = c.querySelector('.scroll-view').scrollTop;
+        let list = "";
+        ACHIEVEMENTS.forEach(ac => {
+            const isUnlocked = gameData.achievements.includes(ac.id); const isClaimed = gameData.claimedAchievements.includes(ac.id);
+            let btn = isClaimed ? `<span style="font-size:0.75rem; font-weight:bold; color:#10b981;">완료됨</span>` : isUnlocked ? `<button class="btn-success btn-sm" onclick="claimReward('${ac.id}')">보상 받기</button>` : `<span style="font-size:0.75rem; color:#9ca3af;">진행 중</span>`;
+            list += `<div class="ach-item ${isClaimed?'claimed':isUnlocked?'unlocked':''}"><div class="ach-info"><h4>${ac.name}</h4><p>${ac.desc}</p></div><div style="text-align:right;"><div style="font-size:0.7rem; margin-bottom:2px; color:#555;">보상: 럭키박스</div>${btn}</div></div>`;
+        });
+        c.innerHTML = `<div class="full-height-layout"><h3>🏆 업적 현황 (${gameData.claimedAchievements.length}/${ACHIEVEMENTS.length})</h3><div class="scroll-view">${list}</div></div>`;
+        if(keepScroll && c.querySelector('.scroll-view')) c.querySelector('.scroll-view').scrollTop = oldScroll;
+    }
+    function claimReward(id){
+        if(gameData.claimedAchievements.includes(id)) return;
+        gameData.claimedAchievements.push(id); gameData.inventory.luckyBox++; saveData(); showToast("보상 수령", "럭키박스 1개가 지급되었습니다."); renderAchievements(document.getElementById('content-area'), true);
+    }
+
+	function renderAlba(c){
+        const now = Date.now(); 
+        const isWorking = gameData.jobEndTime > now;
+
+        if(isWorking) {
+            // ... (근무 중 화면은 기존 코드와 동일) ...
+            const leftMin = Math.ceil((gameData.jobEndTime - now) / 60000);
+            c.innerHTML=`<div class="full-height-layout">
+                <h3>⏳ 근무 중...</h3>
+                <div class="start-screen">
+                    <div style="font-size:3.5rem; margin-bottom:15px; animation: pulse 2s infinite;">🧹</div>
+                    <p style="font-size:1rem; font-weight:bold;">열심히 일하는 중입니다!</p>
+                    <p style="color:var(--primary); margin-top:5px; font-size:0.9rem;">남은 시간: 약 ${leftMin}분</p>
+                </div>
+                <button class="btn-danger" onclick="cancelJob()" style="width:100%; margin-top:auto;">일 그만두기 (중도 정산)</button>
+            </div>`;
+        } else {
+            // 기본 시급 계산 (스킬 포함)
+            let baseWage = HOURLY_WAGE;
+            let bonusTag = '';
+            if(gameData.skills.alba > 0) {
+                baseWage += Math.floor(baseWage * (gameData.skills.alba * 0.05));
+                bonusTag = `<span class="bonus-badge">+${gameData.skills.alba*5}%</span>`;
+            }
+            
+            c.innerHTML=`
+            <div class="alba-container">
+                <h3 style="margin:0 0 10px 0; font-size:1.1rem;">🏪 알바천국</h3>
+                
+                <div class="alba-dashboard">
+                    <div class="stats-grid">
+                        <div class="stat-item" style="border-right:1px solid #f1f3f5;">
+                            <div class="stat-label">기본 시급</div>
+                            <div class="stat-value">${baseWage.toLocaleString()} ${bonusTag}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">예상 수령액</div>
+                            <div class="stat-value highlight" id="alba-total-txt">${baseWage.toLocaleString()}</div>
+                        </div>
+                    </div>
+
+                    <div class="slider-wrapper">
+                        <div class="time-display">
+                            <span style="color:#868e96; font-weight:normal;">근무 시간</span>
+                            <span id="alba-time-badge">1시간</span>
+                        </div>
+                        <input type="range" id="alba-slider" min="1" max="12" value="1" step="1" class="compact-slider" oninput="updateAlbaPreview(this.value, ${baseWage})">
+                        <div style="font-size:0.75rem; text-align:right; color:#adb5bd;">
+                            + <span id="alba-xp-txt">10</span> XP 획득 예정
+                        </div>
+                        <div id="night-info" style="font-size:0.75rem; color:#a855f7; text-align:center; margin-top:5px; display:none;">
+                            🌙 야간 수당 적용 예정 (1.5배)
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <button class="btn-primary btn-work" onclick="startJob()">출근 도장 찍기! 🔨</button>
+                    <p style="font-size:0.7rem; color:#999; text-align:center; margin-top:5px;">22:00 ~ 06:00 종료 시 야간수당 1.5배</p>
+                </div>
+            </div>`;
+            // 초기화 시 1시간 기준으로 미리보기 실행
+            setTimeout(() => window.updateAlbaPreview(1, baseWage), 0);
+        }
+    }
+
+    // [수정] 미리보기 함수: 야간/주간 시간을 분리하여 정확한 예상 금액 표시
+	window.updateAlbaPreview = function(val, baseWage) {
+		// 예상 종료 시간
+		const expectedEndTime = Date.now() + (val * 60 * 60 * 1000);
+		
+		// 야간 시간 계산
+		const nightHours = getNightHourCount(expectedEndTime, val);
+		const dayHours = val - nightHours;
+
+		// 최종 금액 계산
+		const finalWage = (dayHours * baseWage) + (nightHours * Math.floor(baseWage * 1.5));
+		
+		let timeLabel = val + "시간";
+		const nightInfo = document.getElementById('night-info');
+
+		if(nightHours > 0) {
+			timeLabel += " <span style='font-size:0.8rem;'>🌙</span>";
+			if(nightInfo) {
+				nightInfo.style.display = 'block';
+				nightInfo.innerHTML = `🌙 야간 ${nightHours}시간 포함 (1.5배)`;
+			}
+		} else {
+			if(nightInfo) nightInfo.style.display = 'none';
+		}
+
+		document.getElementById('alba-time-badge').innerHTML = timeLabel;
+		document.getElementById('alba-total-txt').innerText = finalWage.toLocaleString() + "원";
+		document.getElementById('alba-xp-txt').innerText = (val * 10);
+		
+		const slider = document.getElementById('alba-slider');
+		if(slider) {
+			// 야간이 포함되면 보라색 그라데이션
+			const color = nightHours > 0 ? '#a855f7' : 'var(--primary)';
+			const percent = ((val - 1) / (12 - 1)) * 100;
+			slider.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${percent}%, #e9ecef ${percent}%, #e9ecef 100%)`;
+		}
+	};
+
+	window.updateAlbaPreview = function(val, wage) {
+		document.getElementById('alba-time-badge').innerText = val + "시간";
+		document.getElementById('alba-total-txt').innerText = (wage * val).toLocaleString() + "원";
+		document.getElementById('alba-xp-txt').innerText = (val * 10);
+		const slider = document.getElementById('alba-slider');
+		if(slider) {
+			const percent = ((val - 1) / (12 - 1)) * 100;
+			slider.style.background = `linear-gradient(to right, var(--primary) 0%, var(--primary) ${percent}%, #e9ecef ${percent}%, #e9ecef 100%)`;
+		}
+	};
+
+	function startJob(){
+		if(gameData.jobEndTime > Date.now()) return showMsg("이미 알바를 하고 있습니다!");
+		const slider = document.getElementById('alba-slider');
+		const hours = slider ? parseInt(slider.value) : 1;
+		
+		showConfirm(`${hours}시간 동안 알바를 하시겠습니까?`, ()=>{ 
+			gameData.jobEndTime = Date.now() + (hours * 60 * 60 * 1000);
+			gameData.jobHours = hours;
+			saveData(); 
+			updateUI(); 
+			openTab('alba'); 
+		});
+	}
+
+    function cancelJob(){
+        let durationMs = gameData.jobHours * 60 * 60 * 1000;
+        let startTime = gameData.jobEndTime - durationMs;
+        let elapsed = Date.now() - startTime;
+        let hoursDone = Math.floor(elapsed / (60 * 60 * 1000));
+        
+        let wage = HOURLY_WAGE;
+        if(gameData.skills.alba > 0) wage += Math.floor(wage * (gameData.skills.alba * 0.05));
+        let payout = wage * hoursDone;
+
+        let msg = hoursDone > 0 
+            ? `현재 <b>${hoursDone}시간</b> 근무했습니다.<br>중단 시 <b>${payout.toLocaleString()}원</b>만 받게 됩니다.` 
+            : `아직 1시간도 근무하지 않았습니다.<br>지금 그만두면 <b>수입이 없습니다.</b>`;
+
+        showConfirm(msg + "<br><br>정말 그만두시겠습니까?", () => {
+            gameData.money += payout;
+            gameData.jobEndTime = 0;
+            gameData.jobHours = 0;
+            if(hoursDone > 0) {
+                 gameData.stats.albaCount++;
+                 gainXP(hoursDone * 5); 
+            }
+            saveData();
+            showMsg("알바를 중단하고 정산받았습니다.");
+            openTab('alba');
+            checkAchievements();
+        });
+    }
+
+    function renderStock(c){
+        let interval = isVipActive() ? VIP_DATA[gameData.vip.level].stockMin : 30;
+        let h = `<div class="full-height-layout">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>📈 주식 시장 <span style="font-size:0.7rem; font-weight:normal;">갱신: ${interval}분</span></h3>
+            <button class="btn-sm btn-outline" onclick="showStockHistory()">📜 기록</button>
+        </div>
+        <div class="scroll-view">`;
+        for(let n in gameData.stocks){let s=gameData.stocks[n];h+=`<div class="stock-item"><div class="stock-info"><b>${n}</b><span>${s.p.toLocaleString()}원</span></div><div class="stock-cnt">${s.n}주</div><div class="stock-actions"><button class="btn-outline" onclick="tradeStock('${n}',1)">매수</button><button class="btn-danger" onclick="tradeStock('${n}',-1)">매도</button></div></div>`;}
+        c.innerHTML = h + `</div><p style='text-align:center;font-size:0.75rem;color:#6b7280;background:#f3f4f6;padding:8px;border-radius:10px;'><span id="stock-timer" style="color:var(--primary);font-weight:bold;">(계산 중...)</span></p></div>`;
+    }
+    
+    function showStockHistory(){
+        const o=document.getElementById('modal-overlay'), c=document.getElementById('modal-content'), g=document.getElementById('gacha-ui');
+        c.style.display='block'; g.style.display='none';
+        const t=document.getElementById('modal-text'),b=document.getElementById('modal-btns');
+        
+        let html = `<h3>📜 거래 내역</h3>`;
+        if(!gameData.stockHistory || gameData.stockHistory.length === 0){
+            html += `<p style="padding:20px; color:#999;">거래 기록이 없습니다.</p>`;
+        } else {
+            html += `<div class="history-container"><table class="history-table">
+                <thead><tr><th>종목</th><th>구분</th><th>단가(수량)</th></tr></thead><tbody>`;
+            [...gameData.stockHistory].reverse().forEach(h => {
+                html += `<tr>
+                    <td>${h.name}</td>
+                    <td class="${h.type==='매수'?'buy':'sell'}">${h.type}</td>
+                    <td>${h.price.toLocaleString()}원 (${h.count}주)</td>
+                </tr>`;
+            });
+            html += `</tbody></table></div>`;
+        }
+        
+        t.innerHTML = html;
+        b.innerHTML = `<button onclick="closeModal()">닫기</button>`;
+        o.style.display='flex';
+    }
+
+    function tradeStock(n,d){
+        const p=gameData.stocks[n].p;
+        if(d===1&&gameData.money>=p){
+            gameData.money-=p; gameData.stocks[n].n++;
+            gameData.stats.stockBuyCount = (gameData.stats.stockBuyCount||0) + 1;
+            recordStockTrade(n, '매수', p);
+        }
+        else if(d===-1&&gameData.stocks[n].n>0){
+            gameData.money+=p; gameData.stocks[n].n--;
+            gameData.stats.stockSellCount = (gameData.stats.stockSellCount||0) + 1;
+            recordStockTrade(n, '매도', p);
+        }
+        else return showMsg("잔액/주식 부족");
+        gameData.stats.stockTrades++; saveData(); checkAchievements(); openTab('stock');
+    }
+
+    function recordStockTrade(name, type, price){
+        if(!gameData.stockHistory) gameData.stockHistory = [];
+        const last = gameData.stockHistory[gameData.stockHistory.length - 1];
+        
+        if(last && last.name === name && last.type === type && last.price === price){
+            last.count++;
+        } else {
+            gameData.stockHistory.push({ name: name, type: type, price: price, count: 1, time: Date.now() });
+        }
+    }
+
+    function renderBank(c){
+        const limit = gameData.level * 100000;
+        c.innerHTML = `<div class="full-height-layout"><div><h3>💸 사채 사무소</h3><p style="color:#ef4444; font-weight:bold; font-size:0.85rem;">"급전 필요해? 분당 5%야. 못 갚으면 알지?"</p></div><div style="flex-grow:1;display:flex;flex-direction:column;justify-content:center;"><div class="bank-info"><span class="compact-label">현재 대출금</span><div class="bank-debt">${gameData.debt.toLocaleString()}원</div><span class="bank-limit">신용 한도: ${limit.toLocaleString()}원 (Lv.${gameData.level})</span></div><div class="input-group"><input type="number" id="loanAmt" placeholder="금액 입력"></div><div style="display:flex;gap:10px;margin-top:10px;"><button class="btn-success" onclick="borrowMoney(${limit})" style="flex:1;">대출하기</button><button class="btn-danger" onclick="repayMoney()" style="flex:1;">상환하기</button></div></div></div>`;
+    }
+    function borrowMoney(limit){
+        const amt = Number(document.getElementById('loanAmt').value);
+        if(amt <= 0) return showMsg("올바른 금액을 입력하세요."); if(gameData.debt + amt > limit) return showMsg("신용 한도를 초과했습니다.");
+        if(gameData.debt === 0) gameData.lastInterest = Date.now();
+        gameData.money += amt; gameData.debt += amt; 
+        
+        gameData.stats.maxDebt = Math.max(gameData.stats.maxDebt || 0, gameData.debt);
+        gameData.stats.loanCount++; saveData(); checkAchievements();
+        showMsg(`${amt.toLocaleString()}원을 빌렸습니다.<br><span style='color:red;font-size:0.8rem;'>이제부터 1분마다 이자가 붙습니다.</span>`); openTab('bank');
+    }
+    function repayMoney(){
+        const amt = Number(document.getElementById('loanAmt').value);
+        if(amt <= 0) return showMsg("올바른 금액을 입력하세요."); if(amt > gameData.money) return showMsg("가진 돈이 부족합니다."); if(gameData.debt === 0) return showMsg("갚을 빚이 없습니다.");
+        const pay = Math.min(amt, gameData.debt); gameData.money -= pay; gameData.debt -= pay; saveData(); checkAchievements();
+        showMsg(`${pay.toLocaleString()}원을 상환했습니다.`); openTab('bank');
+    }
+    function calcXP(b){return Math.max(1,Math.floor(b/100));} function r(m){return Math.floor(Math.random()*m)+1;}
+
+    // --- 게임 로직 ---
+    function renderDice(c){
+        c.innerHTML=`<div class="full-height-layout"><div><h3>🎲 주사위</h3><p>딜러보다 높은 숫자가 나오면 승리!</p></div>
+        <div id="dice-start" class="start-screen"><div class="start-icon">🎲</div></div>
+        <div id="dice-game" style="display:none;flex-grow:1;flex-direction:column;"><div class="game-board"><div class="compact-board"><div class="compact-col"><span class="compact-label">딜러</span><div id="dd"></div></div><div class="compact-vs"></div><div class="compact-col"><span class="compact-label" style="color:var(--primary)">나</span><div id="md"></div></div></div><div id="dm" style="text-align:center;font-weight:bold;height:20px;"></div></div><button id="dn" onclick="diceN()">굴리기</button></div>
+        
+        <div id="dice-ctrl" style="margin-top:auto;">
+            <div style="display:flex; justify-content:flex-end; margin-bottom:5px;">
+                 <label class="item-toggle"><input type="checkbox" id="use-dice-item"><span class="item-toggle-indicator"></span> <span id="use-dice-item-label">🎲 승리 주사위</span></label>
+            </div>
+            <div class="input-group" style="margin-top:0; padding-top:0;">
+                <input type="number" id="dB" placeholder="배팅금"><button onclick="diceGo()">시작</button>
+            </div>
+        </div>
+        </div>`; 
+    }
+    function diceGo(){
+        const b=Number(document.getElementById('dB').value); if(b<=0||b>gameData.money)return showMsg('배팅금 확인');
+        const useItem = document.getElementById('use-dice-item').checked;
+        if(useItem && gameData.inventory.diceWin <= 0) return showMsg("아이템 부족");
+        gameData.money-=b; 
+        if(useItem){ gameData.inventory.diceWin--; gameData.stats.itemsUsed++; gameData.stats.diceItemUsed++; diceState.usedItem = true; } 
+        else { diceState.usedItem = false; }
+        saveData();
+        diceState.step=0; diceState.bet=b; 
+        if(diceState.usedItem) { diceState.myDice=[6,6,6]; diceState.dealerDice=[1,1,1]; }
+        else { diceState.myDice=[r(6),r(6),r(6)]; diceState.dealerDice=[r(6),r(6),r(6)]; }
+        
+        document.getElementById('dice-start').style.display='none'; document.getElementById('dice-ctrl').style.display='none'; document.getElementById('dice-game').style.display='flex'; diceN();
+    }
+    function diceN(){
+        diceState.step++;
+        
+        if(diceState.step === 3 && !diceState.usedItem && gameData.skills.diceProb > 0){
+            let mySum = diceState.myDice.reduce((a,b)=>a+b,0);
+            let dealerSum = diceState.dealerDice.reduce((a,b)=>a+b,0);
+            if(mySum <= dealerSum){
+                if(Math.random() < (gameData.skills.diceProb * 0.01)){
+                    diceState.dealerDice = [1, 1, 1];
+                }
+            }
+        }
+
+        const dr=(a,s)=>a.map((v,i)=>`<div class="dice-num ${i<s?'':'dice-hidden'}">${i<s?v:'?'}</div>`).join('');
+        document.getElementById('dd').innerHTML=dr(diceState.dealerDice,diceState.step); document.getElementById('md').innerHTML=dr(diceState.myDice,diceState.step);
+        let b=document.getElementById('dn'),m=document.getElementById('dm');
+        if(diceState.step===1){m.innerText="첫 번째 공개";b.innerText="두 번째";}
+        else if(diceState.step===2){m.innerText="승부의 순간!";b.innerText="결과 확인";b.className="btn-danger";}
+        else{
+            let x=diceState.myDice.reduce((a,b)=>a+b,0),y=diceState.dealerDice.reduce((a,b)=>a+b,0);
+            
+            if(diceState.myDice.every(v=>v===1)) { gameData.stats.snakeEyesCount = (gameData.stats.snakeEyesCount||0) + 1; }
+            if(!diceState.usedItem && x===18) { gameData.stats.perfectSixCount = (gameData.stats.perfectSixCount||0) + 1; }
+
+            if(x>y){ 
+                let profit=processResult(true,diceState.bet,2,'dice'); gameData.stats.diceWins++; 
+                let xp=calcXP(diceState.bet); gainXP(xp); m.innerHTML=`<span style="color:var(--success)">승리! +${profit.toLocaleString()}</span> <span class="xp-gain">(+${xp} XP)</span>`; 
+            }
+            else if(x<y){ let rb=processResult(false,diceState.bet,0,'dice'); m.innerHTML=`<span style="color:var(--danger)">패배...</span>${rb<0?` <span style='font-size:0.7rem;color:#10b981'>(+${-rb} 환급)</span>`:''}`; }
+            else{ gameData.money+=diceState.bet; m.innerText="무승부 (배팅금 반환)"; saveData(); }
+            b.innerText="다시 하기"; b.className=""; b.onclick=()=>openTab('dice');
+        }
+    }
+    
+    function renderBlackjack(c){ 
+        c.innerHTML=`<div class="full-height-layout"><div><h3>🃏 블랙잭</h3><p>21을 넘지 않고 딜러를 이기세요.</p></div>
+        <div id="bj-start" class="start-screen"><div class="start-icon">🃏</div></div>
+        <div id="bj-game" style="display:none;flex-grow:1;flex-direction:column;"><div class="game-board"><div class="compact-board"><div class="compact-col"><span class="compact-label">딜러 <span id="bds"></span></span><div id="bdh"></div></div><div class="compact-vs"></div><div class="compact-col"><span class="compact-label" style="color:var(--primary)">나 <span id="bms"></span></span><div id="bmh"></div></div></div><div id="br" style="text-align:center;font-weight:bold;height:20px;"></div></div><div id="ba" style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="hit()" class="btn-success">히트</button><button onclick="stand()" class="btn-danger">스탠드</button></div></div>
+        
+        <div id="bj-ctrl" style="margin-top:auto;">
+            <div style="display:flex; justify-content:flex-end; margin-bottom:5px;">
+                 <label class="item-toggle"><input type="checkbox" id="use-bj-item"><span class="item-toggle-indicator"></span> <span id="use-bj-item-label">🃏 딜러 제약</span></label>
+            </div>
+            <div class="input-group" style="margin-top:0; padding-top:0;">
+                <input type="number" id="bB" placeholder="배팅금"><button onclick="bjGo()">시작</button>
+            </div>
+        </div>
+        </div>`; 
+    }
+    function bjGo(){
+        const b=Number(document.getElementById('bB').value); if(b<=0||b>gameData.money)return showMsg('배팅금 확인');
+        const useItem = document.getElementById('use-bj-item').checked;
+        if(useItem && gameData.inventory.bjCard <= 0) return showMsg("아이템 부족");
+        gameData.money-=b;
+        if(useItem){ gameData.inventory.bjCard--; gameData.stats.itemsUsed++; gameData.stats.bjItemUsed++; }
+        saveData();
+        const s=['♠','♣','♥','♦'],v=['A','2','3','4','5','6','7','8','9','10','J','Q','K']; let d=[]; for(let i of s)for(let j of v)d.push({s:i,v:j}); d.sort(()=>Math.random()-0.5);
+        bjState={deck:d,playerHand:[d.pop(),d.pop()],dealerHand:[d.pop(),d.pop()],bet:b,playing:true, itemUsed: useItem};
+        document.getElementById('bj-start').style.display='none'; document.getElementById('bj-ctrl').style.display='none'; document.getElementById('bj-game').style.display='flex';
+        upBJ(); if(getBJS(bjState.playerHand)===21){bjState.playing=false;upBJ(true);if(getBJS(bjState.dealerHand)===21)endBJ("푸시 (둘 다 블랙잭)",1);else endBJ("🎉 블랙잭!",2.5);}
+    }
+    function getBJS(h){let s=0,a=0;for(let c of h){if(['J','Q','K'].includes(c.v))s+=10;else if(c.v==='A'){s+=11;a++}else s+=Number(c.v)}while(s>21&&a>0){s-=10;a--}return s;}
+    function upBJ(rev=false){
+        const dc=(c)=>`<div class="card ${['♥','♦'].includes(c.s)?'red':''}">${c.s}<br>${c.v}</div>`;
+        document.getElementById('bdh').innerHTML = rev ? bjState.dealerHand.map(dc).join('') : dc(bjState.dealerHand[0]) + `<div class="card card-hidden">?</div>`;
+        document.getElementById('bds').innerText=rev?getBJS(bjState.dealerHand):"?";
+        document.getElementById('bmh').innerHTML=bjState.playerHand.map(dc).join(''); document.getElementById('bms').innerText=getBJS(bjState.playerHand);
+    }
+    function hit(){if(!bjState.playing)return;bjState.playerHand.push(bjState.deck.pop());upBJ();if(getBJS(bjState.playerHand)>21)endBJ("버스트! 패배");}
+    function stand(){
+        if(!bjState.playing)return; bjState.playing=false;
+        
+        let limit = 17;
+        if(bjState.itemUsed) limit = 15;
+        else if(gameData.skills.bjStand > 0) {
+            if(Math.random() < (gameData.skills.bjStand * 0.02)) limit = 15;
+        }
+
+        while(getBJS(bjState.dealerHand)<limit)bjState.dealerHand.push(bjState.deck.pop());
+        upBJ(true); let p=getBJS(bjState.playerHand),d=getBJS(bjState.dealerHand);
+        if(d>21)endBJ("딜러 버스트! 승리",2);else if(p>d)endBJ("승리!",2);else if(p<d)endBJ("패배",0);else endBJ("무승부",1);
+    }
+    function endBJ(m,mul=0){
+        bjState.playing=false; let profit=0, xp=0;
+        if(mul > 1) { profit=processResult(true, bjState.bet, mul, 'blackjack'); gameData.stats.bjWins++; xp=calcXP(bjState.bet); gainXP(xp); }
+        else if(mul === 1) { gameData.money += bjState.bet; saveData(); }
+        else { let rb = processResult(false, bjState.bet, 0, 'blackjack'); if(rb < 0) m += ` <span style='font-size:0.7rem;color:#10b981'>(+${-rb} 환급)</span>`; }
+        let r=document.getElementById('br'); r.innerHTML=m+(xp>0?` <span class="xp-gain">(+${xp} XP)</span>`:""); r.style.color=mul>1?'var(--success)':mul==0?'var(--danger)':'var(--dark)';
+        document.getElementById('ba').innerHTML=`<button onclick="openTab('blackjack')">다시 하기</button>`; updateUI();
+    }
+    
+    function renderRoulette(c){
+        c.innerHTML=`<div class="full-height-layout"><div><h3>🎡 룰렛</h3><p>행운의 색상이나 숫자를 예측해보세요.</p></div>
+        <div id="rt-area" style="flex-grow:1;display:flex;flex-direction:column;justify-content:center;"><div style="text-align:center;"><select id="rt" style="margin-bottom:10px;width:100%;"><option value="c">색상(2배)</option><option value="n">숫자(36배)</option></select><div id="ro"></div></div></div>
+        <div id="rt-wheel-area" style="display:none;flex-grow:1;justify-content:center;align-items:center;flex-direction:column;"><div class="roulette-wrapper"><div id="rv" class="roulette-wheel">GO</div></div><div id="rr" style="text-align:center;font-weight:bold;height:20px;"></div></div>
+        
+        <div id="rt-ctrl" style="margin-top:auto;">
+            <div style="display:flex; justify-content:flex-end; margin-bottom:5px;">
+                 <label class="item-toggle"><input type="checkbox" id="use-rt-item"><span class="item-toggle-indicator"></span> <span id="use-rt-item-label">🧲 자석</span></label>
+            </div>
+            <div class="input-group" style="margin-top:0; padding-top:0;">
+                <input type="number" id="rb" placeholder="배팅금"><button onclick="rSpin()" class="btn-warning">돌리기</button>
+            </div>
+        </div>
+        <button id="rt-reset" onclick="openTab('roulette')" style="display:none;width:100%;">다시 하기</button></div>`;
+        window.rtUIChange=function(){const v=document.getElementById('rt').value,a=document.getElementById('ro');if(v==='c'){a.innerHTML=`<div class="rt-choice-box"><label class="rt-radio-label red-opt" onclick="selectRtColor(this)">🟥 Red<input type="radio" name="rk" value="red"></label><label class="rt-radio-label black-opt" onclick="selectRtColor(this)">⬛ Black<input type="radio" name="rk" value="black"></label></div>`;selectRtColor(a.querySelector('.red-opt'));}else{a.innerHTML=`<input type="number" id="rn" min="0" max="36" placeholder="0~36 숫자">`;}};document.getElementById('rt').onchange=window.rtUIChange;window.rtUIChange();
+    }
+    window.selectRtColor=function(e){document.querySelectorAll('.rt-radio-label').forEach(l=>l.classList.remove('selected'));e.classList.add('selected');e.querySelector('input').checked=true;}
+    function rSpin(){
+        const b=Number(document.getElementById('rb').value),t=document.getElementById('rt').value; if(b<=0||b>gameData.money)return showMsg('배팅금 확인');
+        const useItem = document.getElementById('use-rt-item').checked;
+        if(useItem && gameData.inventory.magnet <= 0) return showMsg("아이템 부족");
+        
+        let ch; if(t==='c'){const k=document.querySelector('input[name="rk"]:checked');if(!k)return showMsg("색상 선택 필요");ch=k.value;}else{ch=Number(document.getElementById('rn').value);if(ch<0||ch>36||isNaN(ch))return showMsg('0~36 숫자 입력');}
+        
+        gameData.money-=b; 
+        if(useItem){ gameData.inventory.magnet--; gameData.stats.itemsUsed++; }
+        saveData(); updateUI();
+        
+        document.getElementById('rt-area').style.display='none';document.getElementById('rt-ctrl').style.display='none';document.getElementById('rt-wheel-area').style.display='flex';
+        let cnt=0,el=document.getElementById('rv'),iv=setInterval(()=>{
+            let n=r(37)-1,c=n===0?'green':n%2===0?'black':'red';el.innerText=n;el.style.color=c;
+            if(++cnt>20){clearInterval(iv);rEnd(n,t,ch,b,useItem);} 
+        },80);
+    }
+    function rEnd(n,t,c,b,useItem){
+        if(useItem){
+            if(t === 'c'){
+                if(Math.random() < 0.9) {
+                    if(c === 'red') n = (Math.floor(Math.random() * 18) * 2) + 1; 
+                    else n = (Math.floor(Math.random() * 18) * 2) + 2; 
+                    if(n>36) n=36;
+                }
+            } else {
+                if(Math.random() < 0.3) n = c;
+            }
+        } 
+        else if(gameData.skills.rtProb > 0){
+             let prob = gameData.skills.rtProb * 0.01;
+             if(Math.random() < prob){
+                 if(t === 'c'){
+                    if(c === 'red') n = (Math.floor(Math.random() * 18) * 2) + 1; 
+                    else n = (Math.floor(Math.random() * 18) * 2) + 2;
+                 } else {
+                    n = c;
+                 }
+             }
+        }
+
+        let el=document.getElementById('rv'); el.innerText=n; el.style.color=n===0?'green':n%2!==0?'red':'black';
+        let rc=n===0?'green':n%2!==0?'red':'black',w=false,m=0;
+        if(t==='c'){if(c===rc){w=true;m=2;}} else{if(c===n){w=true;m=36;}}
+        
+        if(w && n===0) { gameData.stats.rouletteZeroWins = (gameData.stats.rouletteZeroWins||0) + 1; }
+        if(w && t==='c' && c==='red') { gameData.stats.rouletteRedWins = (gameData.stats.rouletteRedWins||0) + 1; }
+
+        if(w){ 
+            processResult(true, b, m, 'roulette'); gameData.stats.rouletteWins++; 
+            let xp=calcXP(b); gainXP(xp); document.getElementById('rr').innerHTML=`<span style="color:var(--success)">축하합니다! +${b*m}</span>`; 
+        } 
+        else { let rb = processResult(false, b, 0, 'roulette'); document.getElementById('rr').innerHTML=`<span style="color:var(--danger)">꽝!</span>${rb<0 ? ` <span style='font-size:0.7rem;color:#10b981'>(+${-rb} 환급)</span>` : ''}`; }
+        document.getElementById('rt-reset').style.display='block';
+    }
+    
+	// --- 슬롯머신 ---
+	function slotsTab(){
+		const g = document.getElementById('content-area');
+		g.innerHTML = `
+			<div style="display:flex; flex-direction:column; height:100%;">
+				<div style="text-align:center; margin-bottom:8px;">
+					<h3 style="margin:0 0 3px 0; font-size:1rem;">🎰 슬롯머신</h3>
+					<p style="font-size:0.7rem; margin:0; color:#6b7280;">3개 일치로 대박! 2개 일치는 본전!</p>
+				</div>
+				<div style="background:linear-gradient(135deg, #1f2937, #374151); padding:12px; border-radius:12px; margin-bottom:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+					<div id="slot-display" style="display:flex; justify-content:center; gap:6px; margin:8px 0;">
+						<div class="slot-reel" style="background:linear-gradient(180deg, #fff, #f3f4f6); padding:12px 8px; border-radius:10px; min-width:55px; text-align:center; font-size:2.2rem; box-shadow:inset 0 2px 6px rgba(0,0,0,0.1), 0 3px 5px rgba(0,0,0,0.2); border:2px solid #fbbf24; overflow:hidden; height:70px; display:flex; align-items:center; justify-content:center;">🍒</div>
+						<div class="slot-reel" style="background:linear-gradient(180deg, #fff, #f3f4f6); padding:12px 8px; border-radius:10px; min-width:55px; text-align:center; font-size:2.2rem; box-shadow:inset 0 2px 6px rgba(0,0,0,0.1), 0 3px 5px rgba(0,0,0,0.2); border:2px solid #fbbf24; overflow:hidden; height:70px; display:flex; align-items:center; justify-content:center;">🍒</div>
+						<div class="slot-reel" style="background:linear-gradient(180deg, #fff, #f3f4f6); padding:12px 8px; border-radius:10px; min-width:55px; text-align:center; font-size:2.2rem; box-shadow:inset 0 2px 6px rgba(0,0,0,0.1), 0 3px 5px rgba(0,0,0,0.2); border:2px solid #fbbf24; overflow:hidden; height:70px; display:flex; align-items:center; justify-content:center;">🍒</div>
+					</div>
+					<div style="background:rgba(0,0,0,0.3); padding:6px; border-radius:6px; margin-top:8px;">
+						<div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; font-size:0.65rem; color:#d1d5db;">
+							<div>🍒x3: 1.5배</div>
+							<div>🍋🍊x3: 2배</div>
+							<div>🍇💎x3: 5배</div>
+							<div>7️⃣x3: 잭팟!</div>
+						</div>
+					</div>
+				</div>
+				<div id="slot-result" style="text-align:center; min-height:30px; font-weight:bold; margin-bottom:8px; font-size:0.85rem;"></div>
+				<div class="input-group" style="margin-top:auto;">
+					<input type="number" id="slot-bet" placeholder="배팅금">
+					<button onclick="spinSlots()" class="btn-warning">🎰 돌리기</button>
+				</div>
+			</div>
+		`;
+	}
+
+	function spinSlots(){
+		const bet = Number(document.getElementById('slot-bet').value);
+		if(bet <= 0 || bet > gameData.money) return showMsg('배팅금 확인');
+		
+		gameData.money -= bet;
+		saveData();
+		updateUI();
+		
+		const symbols = ['🍒', '🍋', '🍊', '🍇', '💎', '7️⃣'];
+		const reels = document.querySelectorAll('.slot-reel');
+		const resultDiv = document.getElementById('slot-result');
+		resultDiv.innerHTML = '<span style="color:#fbbf24;">릴이 돌아가는 중...</span>';
+		
+		// 각 릴을 순차적으로 멈추기
+		const finalResults = [];
+		// 기본 확률
+				let weights = [0.3, 0.3, 0.2, 0.15, 0.04, 0.01];
+				
+				// 승률 스킬 적용 (꽝 확률 감소, 당첨 확률 증가)
+				if(gameData.skills.slotProb > 0) {
+					const probBonus = gameData.skills.slotProb * 0.01;
+					weights[0] -= probBonus; // 꽝 확률 감소
+					weights[2] += probBonus * 0.4; // 체리 확률 증가
+					weights[3] += probBonus * 0.4; // 2배 확률 증가
+					weights[4] += probBonus * 0.15; // 5배 확률 증가
+					weights[5] += probBonus * 0.05; // 잭팟 확률 증가
+				}
+		const rand = Math.random();
+		let cumulative = 0;
+		let outcomeType = 0;
+		
+		for(let i = 0; i < weights.length; i++){
+			cumulative += weights[i];
+			if(rand < cumulative){
+				outcomeType = i;
+				break;
+			}
+		}
+		
+		if(outcomeType === 0){
+			finalResults[0] = symbols[0];
+			finalResults[1] = symbols[1];
+			finalResults[2] = symbols[2];
+		} else if(outcomeType === 1){
+			const sym = symbols[Math.floor(Math.random() * 4)];
+			finalResults[0] = sym;
+			finalResults[1] = sym;
+			finalResults[2] = symbols[Math.floor(Math.random() * symbols.length)];
+			while(finalResults[2] === sym) finalResults[2] = symbols[Math.floor(Math.random() * symbols.length)];
+		} else if(outcomeType === 2){
+			finalResults[0] = finalResults[1] = finalResults[2] = '🍒';
+		} else if(outcomeType === 3){
+			const sym = Math.random() < 0.5 ? '🍋' : '🍊';
+			finalResults[0] = finalResults[1] = finalResults[2] = sym;
+		} else if(outcomeType === 4){
+			const sym = Math.random() < 0.5 ? '🍇' : '💎';
+			finalResults[0] = finalResults[1] = finalResults[2] = sym;
+		} else {
+			finalResults[0] = finalResults[1] = finalResults[2] = '7️⃣';
+		}
+		
+		// 각 릴 애니메이션
+		reels.forEach((reel, index) => {
+			let count = 0;
+			const duration = 15 + (index * 10); // 각 릴마다 순차적으로 멈춤
+			const interval = setInterval(() => {
+				reel.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+				reel.style.transform = 'translateY(-10px)';
+				setTimeout(() => {
+					reel.style.transform = 'translateY(0)';
+				}, 50);
+				
+				if(++count > duration) {
+					clearInterval(interval);
+					reel.textContent = finalResults[index];
+					reel.style.transform = 'scale(1.1)';
+					setTimeout(() => {
+						reel.style.transform = 'scale(1)';
+					}, 200);
+					
+					// 마지막 릴이 멈추면 결과 표시
+					if(index === 2) {
+						setTimeout(() => showSlotResult(finalResults, bet, resultDiv), 300);
+					}
+				}
+			}, 80);
+		});
+	}
+	
+	function showSlotResult(results, bet, resultDiv){
+		let multiplier = 0;
+		let message = '';
+		
+		if(results[0] === results[1] && results[1] === results[2]){
+			if(results[0] === '🍒'){
+				multiplier = 1.5;
+				message = '🍒 체리 3개! 1.5배!';
+			} else if(results[0] === '🍋' || results[0] === '🍊'){
+				multiplier = 2;
+				message = `${results[0]} 3개! 2배 당첨!`;
+			} else if(results[0] === '🍇' || results[0] === '💎'){
+				multiplier = 5;
+				message = `${results[0]} 3개! 5배 대박!`;
+			} else if(results[0] === '7️⃣'){
+				multiplier = 10;
+				message = '🎉 잭팟! 7️⃣ 10배!!!';
+			}
+		} else if(results[0] === results[1] || results[1] === results[2] || results[0] === results[2]){
+			multiplier = 1;
+			message = '2개 일치 - 본전!';
+		} else {
+			multiplier = 0;
+			message = '꽝! 다음 기회에...';
+		}
+		
+		if(multiplier > 0){
+			// 스킬 보너스 적용
+			let bonusMult = 0;
+			if(gameData.skills.slotPay > 0) bonusMult = gameData.skills.slotPay * 0.03;
+			let totalMult = multiplier * (1 + bonusMult);
+			
+			const winAmount = Math.floor(bet * totalMult);
+			gameData.money += winAmount;
+			gameData.stats.slotsWins = (gameData.stats.slotsWins || 0) + 1;
+			if(isJackpot) gameData.stats.slotJackpots = (gameData.stats.slotJackpots || 0) + 1;
+			resultDiv.innerHTML = `<span style="color:var(--success)">${message}<br>+${winAmount.toLocaleString()}원</span>`;
+			gainXP(calcXP(bet));
+		} else {
+			// 패배 시 환급
+			let rebateRate = 0;
+			if(gameData.skills.slots > 0) rebateRate += (gameData.skills.slots * 0.01);
+			
+			if(rebateRate > 0){
+				const rebate = Math.floor(bet * rebateRate);
+				gameData.money += rebate;
+				resultDiv.innerHTML = `<span style="color:var(--danger)">${message}</span> <span style='font-size:0.7rem;color:#10b981'>(+${rebate.toLocaleString()}원 환급)</span>`;
+			} else {
+				resultDiv.innerHTML = `<span style="color:var(--danger)">${message}</span>`;
+			}
+			gameData.stats.slotsLosses = (gameData.stats.slotsLosses || 0) + 1;
+		}
+		
+		saveData();
+		updateUI();
+	}
+
+	// --- 야바위 ---
+	let shellAnswer = -1;
+	let shellBet = 0;
+	let shellShuffling = false;
+	
+	function shellTab(){
+		const g = document.getElementById('content-area');
+		g.innerHTML = `
+			<div style="display:flex; flex-direction:column; height:100%;">
+				<div style="text-align:center; margin-bottom:8px;">
+					<h3 style="margin:0 0 3px 0; font-size:1rem;">🥜 야바위</h3>
+					<p style="font-size:0.7rem; margin:0; color:#6b7280;">땅콩이 숨겨진 컵을 찾으면 3배!</p>
+				</div>
+				<div style="background:linear-gradient(135deg, #7c3aed, #a855f7); padding:15px; border-radius:12px; margin-bottom:8px; box-shadow:0 4px 12px rgba(124,58,237,0.3); position:relative;">
+					<div style="position:absolute; top:8px; right:8px; background:rgba(255,255,255,0.2); padding:3px 8px; border-radius:15px; font-size:0.65rem; color:white; font-weight:bold;">확률: 33%</div>
+					<div id="shell-area" style="display:flex; justify-content:center; gap:10px; margin:15px 0; min-height:100px; align-items:center;">
+						<div class="shell-cup" data-pos="0" onclick="selectShell(0)" style="background:rgba(255,255,255,0.95); padding:12px; border-radius:14px; cursor:pointer; box-shadow:0 4px 8px rgba(0,0,0,0.2); border:2px solid rgba(255,255,255,0.6); transition:all 0.3s;">
+							<div class="cup-icon" style="font-size:2.2rem; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.2));">🥤</div>
+							<div style="font-size:0.7rem; margin-top:3px; font-weight:bold; color:#7c3aed;">1번</div>
+						</div>
+						<div class="shell-cup" data-pos="1" onclick="selectShell(1)" style="background:rgba(255,255,255,0.95); padding:12px; border-radius:14px; cursor:pointer; box-shadow:0 4px 8px rgba(0,0,0,0.2); border:2px solid rgba(255,255,255,0.6); transition:all 0.3s;">
+							<div class="cup-icon" style="font-size:2.2rem; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.2));">🥤</div>
+							<div style="font-size:0.7rem; margin-top:3px; font-weight:bold; color:#7c3aed;">2번</div>
+						</div>
+						<div class="shell-cup" data-pos="2" onclick="selectShell(2)" style="background:rgba(255,255,255,0.95); padding:12px; border-radius:14px; cursor:pointer; box-shadow:0 4px 8px rgba(0,0,0,0.2); border:2px solid rgba(255,255,255,0.6); transition:all 0.3s;">
+							<div class="cup-icon" style="font-size:2.2rem; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.2));">🥤</div>
+							<div style="font-size:0.7rem; margin-top:3px; font-weight:bold; color:#7c3aed;">3번</div>
+						</div>
+					</div>
+					<div id="shell-hint" style="text-align:center; color:white; font-size:0.75rem; margin-top:5px; font-weight:bold; min-height:20px;">배팅 후 시작하세요!</div>
+				</div>
+				<div id="shell-result" style="text-align:center; min-height:30px; font-weight:bold; margin-bottom:8px; font-size:0.85rem;"></div>
+				<div class="input-group" style="margin-top:auto;">
+					<input type="number" id="shell-bet" placeholder="배팅금">
+					<button onclick="startShell()" class="btn-warning" id="shell-start-btn">🎲 시작</button>
+				</div>
+			</div>
+		`;
+		shellShuffling = false;
+	}
+
+	function startShell(){
+		const bet = Number(document.getElementById('shell-bet').value);
+		if(bet <= 0 || bet > gameData.money) return showMsg('배팅금 확인');
+		if(shellShuffling) return;
+		
+		shellShuffling = true;
+		gameData.money -= bet;
+		shellBet = bet;
+		shellAnswer = Math.floor(Math.random() * 3);
+		
+		saveData();
+		updateUI();
+		
+		document.getElementById('shell-start-btn').disabled = true;
+		document.getElementById('shell-result').innerHTML = '';
+		document.getElementById('shell-hint').innerHTML = '땅콩을 기억하세요! 🥜';
+		
+		const cups = document.querySelectorAll('.shell-cup');
+		
+		// 1단계: 땅콩 보여주기
+		cups[shellAnswer].querySelector('.cup-icon').textContent = '🥜';
+		
+		setTimeout(() => {
+			cups[shellAnswer].querySelector('.cup-icon').textContent = '🥤';
+			document.getElementById('shell-hint').innerHTML = '컵을 섞는 중... 👀';
+			
+			// 2단계: 컵 섞기 애니메이션
+			let shuffleCount = 0;
+			const shuffleInterval = setInterval(() => {
+				const cup1 = Math.floor(Math.random() * 3);
+				let cup2 = Math.floor(Math.random() * 3);
+				while(cup2 === cup1) cup2 = Math.floor(Math.random() * 3);
+				
+				cups[cup1].style.transform = 'translateY(-15px)';
+				cups[cup2].style.transform = 'translateY(-15px)';
+				
+				setTimeout(() => {
+					cups[cup1].style.transform = 'translateY(0)';
+					cups[cup2].style.transform = 'translateY(0)';
+				}, 200);
+				
+				if(++shuffleCount >= 8) {
+					clearInterval(shuffleInterval);
+					setTimeout(() => {
+						document.getElementById('shell-hint').innerHTML = '어느 컵에 땅콩이 있을까요? 🤔';
+						document.getElementById('shell-start-btn').disabled = false;
+						shellShuffling = false;
+					}, 400);
+				}
+			}, 400);
+		}, 1500);
+	}
+
+	function selectShell(index){
+		if(shellAnswer === -1) return showMsg('먼저 배팅하고 시작하세요!');
+		if(shellShuffling) return showMsg('컵을 섞는 중입니다!');
+		
+		const cups = document.querySelectorAll('.shell-cup');
+		
+		// 모든 컵 공개
+		cups.forEach((cup, i) => {
+			const icon = cup.querySelector('.cup-icon');
+			setTimeout(() => {
+				if(i === shellAnswer){
+					icon.textContent = '🥜';
+					cup.style.transform = 'scale(1.1)';
+					cup.style.borderColor = '#10b981';
+				} else {
+					icon.textContent = '❌';
+				}
+			}, i * 200);
+		});
+		
+		const resultDiv = document.getElementById('shell-result');
+		
+		setTimeout(() => {
+			if(index === shellAnswer){
+				// 스킬 보너스 적용
+				let multiplier = 3;
+				if(gameData.skills.shellPay > 0) {
+					multiplier *= (1 + gameData.skills.shellPay * 0.03);
+				}
+				
+				const winAmount = Math.floor(shellBet * multiplier);
+				gameData.money += winAmount;
+				gameData.stats.shellWins = (gameData.stats.shellWins || 0) + 1;
+				gameData.stats.shellCurrentStreak = (gameData.stats.shellCurrentStreak || 0) + 1;
+				gameData.stats.shellMaxStreak = Math.max(gameData.stats.shellMaxStreak || 0, gameData.stats.shellCurrentStreak);
+				resultDiv.innerHTML = `<span style="color:var(--success)">🎉 정답! +${winAmount.toLocaleString()}원</span>`;
+				gainXP(calcXP(shellBet));
+			} else {
+				// 패배 시 환급
+				let rebateRate = 0;
+				if(gameData.skills.shell > 0) rebateRate += (gameData.skills.shell * 0.01);
+				
+				if(rebateRate > 0){
+					const rebate = Math.floor(shellBet * rebateRate);
+					gameData.money += rebate;
+					resultDiv.innerHTML = `<span style="color:var(--danger)">❌ 틀렸습니다! 정답은 ${shellAnswer + 1}번!</span> <span style='font-size:0.7rem;color:#10b981'>(+${rebate.toLocaleString()}원 환급)</span>`;
+				} else {
+					resultDiv.innerHTML = `<span style="color:var(--danger)">❌ 틀렸습니다! 정답은 ${shellAnswer + 1}번!</span>`;
+				}
+				gameData.stats.shellLosses = (gameData.stats.shellLosses || 0) + 1;
+				gameData.stats.shellCurrentStreak = 0;
+			}
+			
+			shellAnswer = -1;
+			shellBet = 0;
+			saveData();
+			updateUI();
+			
+			setTimeout(() => {
+				cups.forEach(cup => {
+					cup.querySelector('.cup-icon').textContent = '🥤';
+					cup.style.transform = 'scale(1)';
+					cup.style.borderColor = 'rgba(255,255,255,0.6)';
+				});
+				document.getElementById('shell-hint').innerHTML = '다시 도전하세요!';
+			}, 2500);
+		}, 600);
+	}
+
+	// --- 가위바위보 ---
+	let rpsPlaying = false; // 게임 진행 중 플래그
+	
+	function rpsTab(){
+		if(!gameData.rpsStreak) gameData.rpsStreak = 0;
+		if(!gameData.rpsTotalReward) gameData.rpsTotalReward = 0;
+		
+		const g = document.getElementById('content-area');
+		const nextReward = Math.pow(2, gameData.rpsStreak) * 1000;
+		const canClaim = gameData.rpsStreak >= 3;
+		
+		g.innerHTML = `
+			<div style="display:flex; flex-direction:column; height:100%;">
+				<div style="text-align:center; margin-bottom:6px;">
+					<h3 style="margin:0 0 2px 0; font-size:1rem;">✊ 가위바위보</h3>
+					<p style="font-size:0.7rem; margin:0; color:#6b7280;">3연승부터 상금 수령 가능! 패배 시 초기화</p>
+				</div>
+				<div style="background:#f9fafb; padding:8px 12px; border-radius:10px; margin-bottom:8px; font-size:0.8rem;">
+					<div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+						<span style="color:#6b7280;">현재 연승</span>
+						<span style="font-weight:bold; color:var(--primary)">${gameData.rpsStreak}연승</span>
+					</div>
+					<div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+						<span style="color:#6b7280;">누적 상금</span>
+						<span style="font-weight:bold; color:${canClaim ? 'var(--success)' : '#9ca3af'}">${gameData.rpsTotalReward.toLocaleString()}원</span>
+					</div>
+					<div style="display:flex; justify-content:space-between;">
+						<span style="color:#6b7280;">다음 승리 시</span>
+						<span style="font-weight:bold; color:var(--warning)">+${nextReward.toLocaleString()}원</span>
+					</div>
+				</div>
+				${canClaim ? `<button onclick="claimRPS()" class="btn-success" style="margin-bottom:8px; padding:10px; font-size:0.9rem;">💰 상금 받기 (${gameData.rpsTotalReward.toLocaleString()}원)</button>` : ''}
+				<div style="text-align:center; flex-grow:1; display:flex; flex-direction:column; justify-content:center; min-height:80px;">
+					<div id="rps-display" style="font-size:3rem; margin:8px 0;">❓</div>
+					<div id="rps-result" style="min-height:30px; font-weight:bold; font-size:0.85rem;"></div>
+				</div>
+				<div id="rps-buttons" style="display:flex; gap:6px; justify-content:center; margin-top:auto;">
+					<button onclick="playRPS('✊')" style="flex:1; font-size:1.8rem; padding:10px;">✊</button>
+					<button onclick="playRPS('✋')" style="flex:1; font-size:1.8rem; padding:10px;">✋</button>
+					<button onclick="playRPS('✌️')" style="flex:1; font-size:1.8rem; padding:10px;">✌️</button>
+				</div>
+			</div>
+		`;
+		rpsPlaying = false;
+	}
+	
+	function claimRPS(){
+		if(gameData.rpsStreak < 3 || gameData.rpsTotalReward <= 0) return showMsg('수령 가능한 상금이 없습니다!');
+		
+		const reward = gameData.rpsTotalReward;
+		const streak = gameData.rpsStreak;
+		
+		gameData.money += reward;
+		
+		// 7연승 이상 상금 수령 업적
+		if(streak >= 7) {
+			gameData.stats.rpsBigWin = (gameData.stats.rpsBigWin || 0) + 1;
+		}
+		gameData.stats.rpsClaimed = (gameData.stats.rpsClaimed || 0) + 1;
+		gameData.rpsStreak = 0;
+		gameData.rpsTotalReward = 0;
+		
+		saveData();
+		updateUI();
+		
+		checkAchievements();
+		
+		showMsg(`💰 <b>${reward.toLocaleString()}원</b> 획득!<br>연승이 초기화됩니다.`);
+		rpsTab();
+	}
+
+	function playRPS(player){
+		if(rpsPlaying) return; // 이미 게임 진행 중이면 무시
+		rpsPlaying = true;
+		
+		// 버튼 비활성화
+		const buttons = document.querySelectorAll('#rps-buttons button');
+		buttons.forEach(btn => btn.disabled = true);
+		
+		const choices = ['✊', '✋', '✌️'];
+		let computer = choices[Math.floor(Math.random() * 3)];
+		
+		// 승률 스킬 적용
+		if(gameData.skills.rps > 0) {
+			const rpsProb = gameData.skills.rps * 0.01;
+			if(Math.random() < rpsProb) {
+				// 플레이어가 이기도록 AI 선택 조정
+				if(player === '✊') computer = '✌️';
+				else if(player === '✋') computer = '✊';
+				else if(player === '✌️') computer = '✋';
+			}
+		}
+		
+		const display = document.getElementById('rps-display');
+		const resultDiv = document.getElementById('rps-result');
+		
+		let count = 0;
+		const interval = setInterval(() => {
+			display.textContent = choices[count % 3];
+			count++;
+			if(count > 9){
+				clearInterval(interval);
+				display.textContent = computer;
+				
+				let result = '';
+				if(player === computer){
+					result = 'draw';
+				} else if(
+					(player === '✊' && computer === '✌️') ||
+					(player === '✋' && computer === '✊') ||
+					(player === '✌️' && computer === '✋')
+				){
+					result = 'win';
+				} else {
+					result = 'lose';
+				}
+				
+				if(result === 'win'){
+					gameData.rpsStreak++;
+					let reward = Math.pow(2, gameData.rpsStreak - 1) * 1000;
+					
+					// 스킬 보너스 적용
+					if(gameData.skills.rpsPay > 0) {
+						reward = Math.floor(reward * (1 + gameData.skills.rpsPay * 0.05));
+					}
+					
+					gameData.rpsTotalReward += reward;
+					
+					if(gameData.rpsStreak >= 3){
+						resultDiv.innerHTML = `<span style="color:var(--success)">승리! ${gameData.rpsStreak}연승!<br>누적 상금: ${gameData.rpsTotalReward.toLocaleString()}원</span>`;
+					} else {
+						resultDiv.innerHTML = `<span style="color:var(--success)">승리! ${gameData.rpsStreak}연승<br>누적 상금: ${gameData.rpsTotalReward.toLocaleString()}원 (3연승부터 수령)</span>`;
+					}
+					
+					gameData.stats.rpsWins = (gameData.stats.rpsWins || 0) + 1;
+					gameData.stats.rpsMaxStreak = Math.max(gameData.stats.rpsMaxStreak || 0, gameData.rpsStreak);
+					gainXP(50);
+				} else if(result === 'lose'){
+					const lostStreak = gameData.rpsStreak;
+					const lostMoney = gameData.rpsTotalReward;
+					gameData.rpsStreak = 0;
+					gameData.rpsTotalReward = 0;
+					gameData.stats.rpsLosses = (gameData.stats.rpsLosses || 0) + 1;
+					resultDiv.innerHTML = `<span style="color:var(--danger)">패배! 연승 초기화<br>${lostStreak}연승 → 0연승 (${lostMoney.toLocaleString()}원 날림)</span>`;
+				} else {
+					resultDiv.innerHTML = `<span style="color:#6b7280">무승부! 연승 유지<br>${gameData.rpsStreak}연승 (누적: ${gameData.rpsTotalReward.toLocaleString()}원)</span>`;
+				}
+				
+				saveData();
+				updateUI();
+				
+				setTimeout(() => {
+					rpsTab();
+				}, 2500);
+			}
+		}, 100);
+	}
+    // --- 설정 ---
+    function openSettings(){
+        const o=document.getElementById('modal-overlay'), c=document.getElementById('modal-content'), g=document.getElementById('gacha-ui');
+        c.style.display='block'; g.style.display='none';
+        const t=document.getElementById('modal-text'),b=document.getElementById('modal-btns');
+        t.innerHTML = `<h3>⚙️ 설정</h3><p style="text-align:center; font-size:0.8rem; color:#6b7280;">데이터 관리</p>`;
+        b.innerHTML = `<button class="btn-outline" onclick="exportData()" style="width:100%; margin-bottom:5px;">💾 저장 코드 복사</button><button class="btn-outline" onclick="importDataModal()" style="width:100%; margin-bottom:5px;">📂 코드 불러오기</button><button class="btn-danger" onclick="resetGameModal()" style="width:100%; margin-bottom:5px;">🗑️ 데이터 초기화</button><button onclick="closeModal()" style="width:100%; background:#374151;">닫기</button>`;
+        o.style.display='flex';
+    }
+    function exportData(){ const str = btoa(unescape(encodeURIComponent(JSON.stringify(gameData)))); navigator.clipboard.writeText(str).then(() => { alert("세이브 코드가 복사되었습니다!"); }).catch(() => { prompt("아래 코드를 복사하세요:", str); }); }
+    function importDataModal(){
+        const t=document.getElementById('modal-text'),b=document.getElementById('modal-btns');
+        t.innerHTML = `<h3>📂 불러오기</h3><div class="settings-area"><p>세이브 코드를 입력하세요.</p><textarea id="import-area"></textarea></div>`;
+        b.innerHTML = `<button class="btn-outline" onclick="openSettings()">뒤로</button><button class="btn-success" onclick="processImport()">불러오기</button>`;
+    }
+    function processImport(){ try { const str = document.getElementById('import-area').value; if(!str) return alert("코드를 입력하세요."); const json = decodeURIComponent(escape(window.atob(str))); const data = JSON.parse(json); if(!data.money || !data.stocks) throw new Error("Invalid"); localStorage.setItem('rpgGameData', JSON.stringify(data)); alert("복구 완료! 새로고침합니다."); location.reload(); } catch(e) { alert("잘못된 코드입니다."); } }
+    function resetGameModal(){ showConfirm("<span style='color:red'>경고!</span><br>정말 모든 데이터를 삭제하시겠습니까?", () => { localStorage.removeItem('rpgGameData'); location.reload(); }); }
+</script>
+</body>
+</html>
