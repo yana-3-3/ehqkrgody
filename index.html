@@ -361,6 +361,102 @@
 		saveData(); 
 		checkAchievements();
 	}
+	
+	// --- 럭키박스 한번에 까기 ---
+	function openBulkLuckyBoxUI(){
+		if(gameData.inventory.luckyBox <= 1) return showMsg("상자가 2개 이상 필요합니다.");
+		
+		const totalBoxes = gameData.inventory.luckyBox;
+		const o=document.getElementById('modal-overlay'), c=document.getElementById('modal-content'), g=document.getElementById('gacha-ui');
+		c.style.display='block'; g.style.display='none';
+		
+		const t=document.getElementById('modal-text'),b=document.getElementById('modal-btns');
+		t.innerHTML = `<h3>🎁 럭키박스 일괄 개봉</h3>
+			<p style="margin:15px 0;">
+				<span style="font-size:2.5rem;">📦</span><br>
+				<b style="font-size:1.2rem;">${totalBoxes}개</b>의 럭키박스를<br>모두 열까요?
+			</p>
+			<p style="font-size:0.8rem; color:#6b7280;">애니메이션 없이 즉시 결과를 확인합니다.</p>`;
+		b.innerHTML = `<button onclick="closeModal()" class="btn-outline">취소</button><button onclick="executeBulkLuckyBox(${totalBoxes})" class="btn-purple">🎁 모두 열기!</button>`;
+		o.style.display='flex';
+	}
+
+	function executeBulkLuckyBox(count){
+		// 결과 집계용
+		const results = {
+			money: 0,
+			diceWin: 0,
+			bjCard: 0,
+			magnet: 0,
+			fail: 0,
+			jackpot: 0
+		};
+		
+		// 모든 박스 개봉
+		for(let i = 0; i < count; i++){
+			gameData.inventory.luckyBox--;
+			gameData.stats.luckyBoxOpens++;
+			gameData.stats.itemsUsed++;
+			
+			const r = Math.random() * 100;
+			
+			if(r < 50) { 
+				results.fail++; 
+				gameData.stats.luckyBoxFail++; 
+			}
+			else if(r < 75) { 
+				let m = 5000 + Math.floor(Math.random()*5001); 
+				results.money += m; 
+				gameData.money += m; 
+			}
+			else if(r < 90) { 
+				let m = 20000 + Math.floor(Math.random()*30001); 
+				results.money += m; 
+				gameData.money += m; 
+			}
+			else if(r < 95) { 
+				results.diceWin++; 
+				gameData.inventory.diceWin++; 
+			}
+			else if(r < 98) { 
+				results.bjCard++; 
+				gameData.inventory.bjCard++; 
+			}
+			else if(r < 99.5) { 
+				results.magnet++; 
+				gameData.inventory.magnet++; 
+			}
+			else { 
+				results.jackpot++; 
+				results.money += 500000; 
+				gameData.money += 500000; 
+				gameData.stats.luckyBoxJackpot++; 
+			}
+		}
+		
+		// 결과 표시
+		const o=document.getElementById('modal-overlay'), c=document.getElementById('modal-content'), g=document.getElementById('gacha-ui');
+		c.style.display='block'; g.style.display='none';
+		const t=document.getElementById('modal-text'),b=document.getElementById('modal-btns');
+		
+		let resultHtml = `<h3>🎁 개봉 결과 (${count}개)</h3><div style="text-align:left; margin:15px 0; font-size:0.9rem;">`;
+		
+		if(results.money > 0) resultHtml += `<div style="padding:5px 0; border-bottom:1px solid #eee;">💰 획득 금액: <b style="color:var(--success)">+${results.money.toLocaleString()}원</b></div>`;
+		if(results.jackpot > 0) resultHtml += `<div style="padding:5px 0; border-bottom:1px solid #eee;">💎 대박: <b style="color:#ec4899">${results.jackpot}회!</b></div>`;
+		if(results.diceWin > 0) resultHtml += `<div style="padding:5px 0; border-bottom:1px solid #eee;">🎲 승리의 주사위: <b style="color:var(--purple)">+${results.diceWin}개</b></div>`;
+		if(results.bjCard > 0) resultHtml += `<div style="padding:5px 0; border-bottom:1px solid #eee;">🃏 딜러 제약 카드: <b style="color:var(--purple)">+${results.bjCard}개</b></div>`;
+		if(results.magnet > 0) resultHtml += `<div style="padding:5px 0; border-bottom:1px solid #eee;">🧲 룰렛 자석: <b style="color:var(--gold)">+${results.magnet}개</b></div>`;
+		if(results.fail > 0) resultHtml += `<div style="padding:5px 0; color:#9ca3af;">💨 꽝: ${results.fail}회</div>`;
+		
+		resultHtml += `</div>`;
+		
+		t.innerHTML = resultHtml;
+		b.innerHTML = `<button onclick="closeModal()" style="width:100%;">확인</button>`;
+		o.style.display='flex';
+		
+		saveData();
+		checkAchievements();
+	}
 
     // --- 팝업 메뉴 로직 ---
     const MENUS = {
@@ -813,17 +909,18 @@
         const t=document.getElementById('modal-text'),b=document.getElementById('modal-btns');
         
         const lbCount = gameData.inventory.luckyBox;
-        const lbBtn = lbCount > 0 ? `<button onclick="openLuckyBoxUI()" style="width:auto; padding:4px 10px; font-size:0.75rem; margin-left:auto;">사용</button>` : '';
+		const lbBtn = lbCount > 0 ? `<button onclick="openLuckyBoxUI()" style="width:auto; padding:4px 10px; font-size:0.75rem;">1개</button>` : '';
+		const lbBulkBtn = lbCount > 1 ? `<button onclick="openBulkLuckyBoxUI()" style="width:auto; padding:4px 10px; font-size:0.75rem; background:var(--purple);">모두(${lbCount})</button>` : '';
 
-        t.innerHTML = `<h3>🎒 내 가방</h3>
-        <div style="text-align:left; margin-top:10px;">
-            <div class="inv-item-row">
-                <span class="inv-item-name">📦 럭키박스</span>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span class="inv-item-cnt">${lbCount}개</span>
-                    ${lbBtn}
-                </div>
-            </div>
+		t.innerHTML = `<h3>🎒 내 가방</h3>
+		<div style="text-align:left; margin-top:10px;">
+			<div class="inv-item-row">
+				<span class="inv-item-name">📦 럭키박스</span>
+				<div style="display:flex; align-items:center; gap:5px;">
+					<span class="inv-item-cnt">${lbCount}개</span>
+					${lbBtn}${lbBulkBtn}
+				</div>
+			</div>
             <div class="inv-item-row"><span class="inv-item-name">🎲 승리의 주사위</span><span class="inv-item-cnt">${gameData.inventory.diceWin}개</span></div>
             <div class="inv-item-row"><span class="inv-item-name">🃏 딜러 제약 카드</span><span class="inv-item-cnt">${gameData.inventory.bjCard}개</span></div>
             <div class="inv-item-row"><span class="inv-item-name">🧲 룰렛 자석</span><span class="inv-item-cnt">${gameData.inventory.magnet}개</span></div>
@@ -1434,6 +1531,9 @@
     }
     
 	// --- 슬롯머신 ---
+	
+	let slotsSpinning = false;  // 슬롯 회전 중 플래그
+	
 	function slotsTab(){
 		const g = document.getElementById('content-area');
 		g.innerHTML = `
@@ -1467,8 +1567,13 @@
 	}
 
 	function spinSlots(){
+		if(slotsSpinning) return;  // 이미 회전 중이면 무시
+		
 		const bet = Number(document.getElementById('slot-bet').value);
 		if(bet <= 0 || bet > gameData.money) return showMsg('배팅금 확인');
+		
+		slotsSpinning = true;  // 회전 시작
+		document.querySelector('.btn-warning').disabled = true;  // 버튼 비활성화
 		
 		gameData.money -= bet;
 		saveData();
@@ -1548,7 +1653,12 @@
 					
 					// 마지막 릴이 멈추면 결과 표시
 					if(index === 2) {
-						setTimeout(() => showSlotResult(finalResults, bet, resultDiv), 300);
+						setTimeout(() => {
+							showSlotResult(finalResults, bet, resultDiv);
+							slotsSpinning = false;  // 회전 종료
+							const btn = document.querySelector('.btn-warning');
+							if(btn) btn.disabled = false;  // 버튼 다시 활성화
+						}, 300);
 					}
 				}
 			}, 80);
