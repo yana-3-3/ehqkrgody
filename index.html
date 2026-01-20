@@ -227,7 +227,7 @@
 <button class="inv-btn" onclick="openInventory()">🎒</button>
 
 <div class="container">
-    <div id="modal-overlay" class="modal-overlay" onclick="if(event.target === this) closeModal()">
+    <div id="modal-overlay" class="modal-overlay" onclick="if(event.target === this) handleOverlayClick()">
         <div class="modal-box">
             <div id="modal-content">
                 <div id="modal-text" class="modal-text"></div>
@@ -300,6 +300,67 @@
         c.appendChild(d);
         setTimeout(()=>d.remove(), 3000);
     }
+	
+	function handleOverlayClick(){
+		const gachaUI = document.getElementById('gacha-ui');
+		const gachaConfirm = document.getElementById('gacha-confirm');
+		
+		// 럭키박스 애니메이션 중이면 (gacha-ui가 보이고, 확인 버튼이 아직 안 보일 때)
+		if(gachaUI.style.display === 'block' && gachaConfirm.style.display === 'none'){
+			// 바로 결과 표시 (애니메이션 스킵)
+			skipLuckyBoxAnimation();
+		} else {
+			closeModal();
+		}
+	}
+
+	let luckyBoxTimeout = null;
+
+	function skipLuckyBoxAnimation(){
+		if(luckyBoxTimeout) {
+			clearTimeout(luckyBoxTimeout);
+			luckyBoxTimeout = null;
+		}
+		executeLuckyBoxResult();
+	}
+
+	function executeLuckyBoxResult(){
+		const icon = document.getElementById('gacha-icon');
+		const msg = document.getElementById('gacha-msg');
+		const btn = document.getElementById('gacha-confirm');
+		
+		gameData.inventory.luckyBox--; 
+		gameData.stats.luckyBoxOpens++; 
+		const r = Math.random() * 100;
+		let res = "", log = "", resIcon = ""; 
+		icon.className = "gacha-box pop-result"; 
+		
+		if(r < 50) { resIcon = "💨"; res = "꽝!"; log="아무것도 없었다..."; msg.style.color="#9ca3af"; gameData.stats.luckyBoxFail++; }
+		else if(r < 75) { let m = 5000 + Math.floor(Math.random()*5001); gameData.money+=m; resIcon = "🗑️"; res = "잡동사니 발견"; log=`+${m}원`; msg.style.color="#6b7280"; }
+		else if(r < 90) { let m = 20000 + Math.floor(Math.random()*30001); gameData.money+=m; resIcon = "💵"; res = "비상금 발견!"; log=`+${m.toLocaleString()}원`; msg.style.color="var(--success)"; }
+		else if(r < 95) { gameData.inventory.diceWin++; resIcon="🎲"; res="승리의 주사위!"; log="획득!"; msg.style.color="var(--purple)"; }
+		else if(r < 98) { gameData.inventory.bjCard++; resIcon="🃏"; res="딜러 제약 카드!"; log="획득!"; msg.style.color="var(--purple)"; }
+		else if(r < 99.5) { gameData.inventory.magnet++; resIcon="🧲"; res="룰렛 자석!"; log="획득!"; msg.style.color="var(--gold)"; }
+		else { gameData.money+=500000; resIcon="💎"; res="대박!"; log="현금 50만원!"; msg.style.color="#ec4899"; icon.style.textShadow="0 0 20px rgba(236, 72, 153, 0.5)"; gameData.stats.luckyBoxJackpot++; }
+		
+		icon.innerText = resIcon; 
+		
+		// 남은 럭키박스가 있으면 추가 사용 안내
+		if(gameData.inventory.luckyBox > 0){
+			msg.innerHTML = `<span style="font-size:1.2rem">${res}</span><br><span style="font-size:0.9rem; color:#555; font-weight:normal;">${log}</span><br><span style="font-size:0.8rem; color:var(--primary); margin-top:5px;">📦 남은 럭키박스: ${gameData.inventory.luckyBox}개</span>`;
+			btn.innerText = "한 개 더 열기";
+			btn.onclick = function(){ openLuckyBoxUI(); };
+		} else {
+			msg.innerHTML = `<span style="font-size:1.2rem">${res}</span><br><span style="font-size:0.9rem; color:#555; font-weight:normal;">${log}</span>`;
+			btn.innerText = "확인";
+			btn.onclick = function(){ closeModal(); };
+		}
+		
+		btn.style.display = 'block'; 
+		gameData.stats.itemsUsed++; 
+		saveData(); 
+		checkAchievements();
+	}
 
     // --- 팝업 메뉴 로직 ---
     const MENUS = {
@@ -869,25 +930,17 @@
         checkAchievements();
     }
     function openLuckyBoxUI(){
-        if(gameData.inventory.luckyBox <= 0) return showMsg("상자가 없습니다.");
-        const o=document.getElementById('modal-overlay'), c=document.getElementById('modal-content'), g=document.getElementById('gacha-ui');
-        const icon=document.getElementById('gacha-icon'), msg=document.getElementById('gacha-msg'), btn=document.getElementById('gacha-confirm');
-        c.style.display='none'; g.style.display='block'; o.style.display='flex';
-        icon.innerText = "📦"; icon.className = "gacha-box shake-box"; msg.innerText = "두근두근..."; msg.style.color = "var(--primary)"; btn.style.display = 'none';
-        setTimeout(()=>{
-            gameData.inventory.luckyBox--; gameData.stats.luckyBoxOpens++; const r = Math.random() * 100;
-            let res = "", log = "", resIcon = ""; icon.className = "gacha-box pop-result"; 
-            if(r < 50) { resIcon = "💨"; res = "꽝!"; log="아무것도 없었다..."; msg.style.color="#9ca3af"; gameData.stats.luckyBoxFail++; }
-            else if(r < 75) { let m = 5000 + Math.floor(Math.random()*5001); gameData.money+=m; resIcon = "🗑️"; res = "잡동사니 발견"; log=`+${m}원`; msg.style.color="#6b7280"; }
-            else if(r < 90) { let m = 20000 + Math.floor(Math.random()*30001); gameData.money+=m; resIcon = "💵"; res = "비상금 발견!"; log=`+${m.toLocaleString()}원`; msg.style.color="var(--success)"; }
-            else if(r < 95) { gameData.inventory.diceWin++; resIcon="🎲"; res="승리의 주사위!"; log="획득!"; msg.style.color="var(--purple)"; }
-            else if(r < 98) { gameData.inventory.bjCard++; resIcon="🃏"; res="딜러 제약 카드!"; log="획득!"; msg.style.color="var(--purple)"; }
-            else if(r < 99.5) { gameData.inventory.magnet++; resIcon="🧲"; res="룰렛 자석!"; log="획득!"; msg.style.color="var(--gold)"; }
-            else { gameData.money+=500000; resIcon="💎"; res="대박!"; log="현금 50만원!"; msg.style.color="#ec4899"; icon.style.textShadow="0 0 20px rgba(236, 72, 153, 0.5)"; gameData.stats.luckyBoxJackpot++; }
-            icon.innerText = resIcon; msg.innerHTML = `<span style="font-size:1.2rem">${res}</span><br><span style="font-size:0.9rem; color:#555; font-weight:normal;">${log}</span>`;
-            btn.style.display = 'block'; gameData.stats.itemsUsed++; saveData(); checkAchievements();
-        }, 2000);
-    }
+		if(gameData.inventory.luckyBox <= 0) return showMsg("상자가 없습니다.");
+		const o=document.getElementById('modal-overlay'), c=document.getElementById('modal-content'), g=document.getElementById('gacha-ui');
+		const icon=document.getElementById('gacha-icon'), msg=document.getElementById('gacha-msg'), btn=document.getElementById('gacha-confirm');
+		c.style.display='none'; g.style.display='block'; o.style.display='flex';
+		icon.innerText = "🎁"; icon.className = "gacha-box shake-box"; icon.style.textShadow = "none"; msg.innerText = "두근두근..."; msg.style.color = "var(--primary)"; btn.style.display = 'none';
+		
+		luckyBoxTimeout = setTimeout(()=>{
+			luckyBoxTimeout = null;
+			executeLuckyBoxResult();
+		}, 2000);
+	}
     function buyVip(lv){
         if(gameData.money < VIP_DATA[lv].cost) return showMsg("돈이 부족합니다.");
         showConfirm(`${VIP_DATA[lv].name} 멤버십을 구매하시겠습니까?`, ()=>{
@@ -1505,6 +1558,7 @@
 	function showSlotResult(results, bet, resultDiv){
 		let multiplier = 0;
 		let message = '';
+		let isJackpot = false;  // ← 이 줄 추가!
 		
 		if(results[0] === results[1] && results[1] === results[2]){
 			if(results[0] === '🍒'){
@@ -1519,13 +1573,8 @@
 			} else if(results[0] === '7️⃣'){
 				multiplier = 10;
 				message = '🎉 잭팟! 7️⃣ 10배!!!';
+				isJackpot = true;  // ← 이 줄 추가!
 			}
-		} else if(results[0] === results[1] || results[1] === results[2] || results[0] === results[2]){
-			multiplier = 1;
-			message = '2개 일치 - 본전!';
-		} else {
-			multiplier = 0;
-			message = '꽝! 다음 기회에...';
 		}
 		
 		if(multiplier > 0){
@@ -1557,6 +1606,7 @@
 		
 		saveData();
 		updateUI();
+		checkAchievements();
 	}
 
 	// --- 야바위 ---
@@ -1710,6 +1760,7 @@
 			shellBet = 0;
 			saveData();
 			updateUI();
+			checkAchievements();
 			
 			setTimeout(() => {
 				cups.forEach(cup => {
